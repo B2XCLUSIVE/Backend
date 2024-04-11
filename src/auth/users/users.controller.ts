@@ -15,7 +15,7 @@ import { CurrentUser, JwtGuard } from 'src/common';
 import { OtpDto } from './dto/otp.dto';
 import { OtpVerifyDto } from './dto/otp.verify.dto';
 
-@Controller('api/v1/users')
+@Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
@@ -25,9 +25,7 @@ export class UsersController {
   }
 
   @Post('reset-password')
-  resetPassword(
-    @Body() createUserDto:CreateUserDto
-  ) {
+  resetPassword(@Body() createUserDto: CreateUserDto) {
     return this.usersService.resetPassword(createUserDto);
   }
 

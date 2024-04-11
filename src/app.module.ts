@@ -10,9 +10,13 @@ import {
 } from './common';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { PaystackModule } from './paystack/paystack.module';
+import { ArtistModule } from './artist/artist.module';
+import { EventModule } from './event/event.module';
+import { PostModule } from './post/post.module';
+import { TrackModule } from './track/track.module';
 
 @Module({
-  imports: [ConfigModule, AuthModule, CloudinaryModule, PaystackModule],
+  imports: [ConfigModule, AuthModule, CloudinaryModule, PaystackModule, ArtistModule, EventModule, PostModule, TrackModule],
   controllers: [AppController],
   providers: [
     AppService,

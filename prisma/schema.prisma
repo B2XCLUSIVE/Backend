@@ -11,29 +11,209 @@ datasource db {
 }
 
 model User {
-  id           Int    @id @default(autoincrement()) 
-  userName   String?
-  role String?  @default("user")    
-  email        String?        @unique
-  password     String?
-  passwordReset Boolean? @default(false)
-  otp     String?
+  id            Int       @id @default(autoincrement())
+  userName      String?
+  role          String?   @default("user")
+  email         String?   @unique
+  password      String?
+  provider      String    @default("b2Xclusive")
+  passwordReset Boolean?  @default(false)
+  otp           String?
   otpExpiryTime DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
-  //RELATIONSHIPS
-  image       Image?
+  // Relationships
+  imageId Int? @unique
 
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  image    Image?    @relation(fields: [imageId], references: [id])
+  posts    Post[]
+  comments Comment[]
+  likes    Like[]
+  events   Event[]
+  artist   Artist[]
+  videos   Video[]
+  audios   Audio[]
+  track    Track[]
 }
 
 model Image {
-  id          Int    @id @default(autoincrement())
-  publicId    String    @unique
+  id          Int     @id @default(autoincrement())
+  publicId    String  @unique
   url         String
   format      String?
   version     String?
   placeholder String?
-  user                 User?          @relation(fields: [userId], references: [id])
-  userId              Int?    @unique
+
+  // Relationships
+  users  User[]
+  events Event[]
+  albums Album[]
+  artist Artist[]
+  posts  Post[]   @relation("ImageToPost")
+}
+
+model Artist {
+  id        Int      @id @default(autoincrement())
+  name      String
+  bio       String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relationships
+  userId  Int?
+  imageId Int? @unique
+
+  albums Album[]
+  audeos Audio[]
+  videos Video[]
+  track  Track[]
+
+  image Image? @relation(fields: [imageId], references: [id])
+  user  User?  @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Album {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  releaseDate DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relationships
+  imageId Int? @unique
+
+  coverImage Image?  @relation(fields: [imageId], references: [id])
+  artist     Artist  @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  artistId   Int
+  tracks     Track[]
+}
+
+model Track {
+  id        Int      @id @default(autoincrement())
+  title     String
+  duration  Int
+  audioUrl  String? // Assuming this is a URL to Cloudinary
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relationships
+  albumId  Int?
+  artistId Int?
+  userId   Int
+
+  album  Album?  @relation(fields: [albumId], references: [id])
+  artist Artist? @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Event {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  date        DateTime
+  location    String?
+  organisers  Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userId  Int?      @unique
+  image   Image[]
+  likes   Like[]
+  comment Comment[]
+
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Post {
+  id          Int     @id @default(autoincrement())
+  title       String
+  description String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relationships
+
+  authorId Int @unique
+
+  author  User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  comment Comment[]
+  likes   Like[]
+  image   Image[]   @relation("ImageToPost")
+}
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relationships
+
+  postId  Int?
+  eventId Int?
+  userId  Int? @unique
+
+  post  Post?  @relation(fields: [postId], references: [id], onDelete: Cascade)
+  event Event? @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user  User?  @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Like {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relationships
+  postId  Int?
+  userId  Int
+  videoId Int?
+  audioId Int?
+  eventId Int?
+
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post  Post?  @relation(fields: [postId], references: [id], onDelete: Cascade)
+  event Event? @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  video Video? @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  audio Audio? @relation(fields: [audioId], references: [id], onDelete: Cascade)
+}
+
+model Video {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  videoUrl    String?
+  publicId    String   @unique
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relationships
+  artistId Int?
+  userId   Int
+
+  artist Artist? @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  likes Like[]
+}
+
+model Audio {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  audioUrl    String?
+  publicId    String   @unique
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relationships
+  artistId Int?
+  userId   Int
+
+  artist Artist? @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  likes Like[]
 }

@@ -1,5 +1,9 @@
 {
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "editor.formatOnPaste": false,
-    "editor.formatOnSave": true
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnPaste": false,
+  "editor.formatOnSave": true,
+  "workbench.colorCustomizations": {},
+  "[prisma]": {
+    "editor.defaultFormatter": "Prisma.prisma"
+  }
 }
