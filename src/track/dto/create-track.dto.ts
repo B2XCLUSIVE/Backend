@@ -25,4 +25,12 @@ export class CreateTrackDto {
   @IsString()
   @IsOptional()
   duration?: string;
+
+  @IsOptional()
+  @IsString({ each: true })
+  categories?: string[];
+
+  @IsOptional()
+  @IsString({ each: true })
+  tags?: string[];
 }

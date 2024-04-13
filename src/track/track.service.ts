@@ -30,6 +30,17 @@ export class TrackService {
         throw new HttpException('Artist not found', HttpStatus.NOT_FOUND);
       }
 
+      const audioTitle = await this.prismaService.track.findFirst({
+        where: { title, artistId },
+      });
+
+      if (audioTitle) {
+        throw new HttpException(
+          'Audio with title already exist',
+          HttpStatus.CONFLICT,
+        );
+      }
+
       let audioUrls: string[] = [];
       let publicIds: string[] = [];
 
@@ -88,7 +99,8 @@ export class TrackService {
     videos: Array<Express.Multer.File>,
   ): Promise<any> {
     try {
-      const { title, description, duration, artistId } = createTrackDto;
+      const { title, description, duration, artistId, categories, tags } =
+        createTrackDto;
       const user = await this.usersService.getUserById(userId);
       const artist = await this.prismaService.artist.findUnique({
         where: { id: artistId },
@@ -96,6 +108,17 @@ export class TrackService {
 
       if (!artist) {
         throw new HttpException('Artist not found', HttpStatus.NOT_FOUND);
+      }
+
+      const vidTitle = await this.prismaService.video.findFirst({
+        where: { title, artistId },
+      });
+
+      if (vidTitle) {
+        throw new HttpException(
+          'Video with title already exist',
+          HttpStatus.CONFLICT,
+        );
       }
 
       let videoUrls: string[] = [];
@@ -122,6 +145,8 @@ export class TrackService {
               title: `${title} ${index + 1}`,
               duration,
               description,
+              categories,
+              tags,
               videoUrl,
               publicId: publicIds[index],
               artist: { connect: { id: artistId } },
