@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { UploadApiResponse, UploadApiErrorResponse, v2 } from 'cloudinary';
 import toStream = require('buffer-to-stream');
 
@@ -16,22 +16,22 @@ export class CloudinaryService {
     return this.uploadToCloudinary(file, 'video');
   }
 
-  async uploadAudio(
+  async uploadauto(
     file: Express.Multer.File,
   ): Promise<UploadApiResponse | UploadApiErrorResponse> {
-    return this.uploadToCloudinary(file, 'audio');
+    return this.uploadToCloudinary(file, 'auto');
   }
 
   async uploadMedia(
     file: Express.Multer.File,
-    resourceType: 'image' | 'video' | 'audio',
+    resourceType: 'image' | 'video' | 'auto',
   ): Promise<UploadApiResponse | UploadApiErrorResponse> {
     return this.uploadToCloudinary(file, resourceType);
   }
 
   async uploadMedias(
     files: Express.Multer.File[],
-    resourceType: 'image' | 'video' | 'audio',
+    resourceType: 'image' | 'video' | 'auto',
   ): Promise<(UploadApiResponse | UploadApiErrorResponse)[]> {
     const uploadPromises = files?.map((file) =>
       this.uploadToCloudinary(file, resourceType),
@@ -53,28 +53,33 @@ export class CloudinaryService {
 
   private uploadToCloudinary(
     file: Express.Multer.File,
-    resourceType: 'image' | 'video' | 'audio',
+    resourceType: 'image' | 'video' | 'auto',
   ): Promise<UploadApiResponse | UploadApiErrorResponse> {
     return new Promise((resolve, reject) => {
-      const uploadOptions: any = { folder: `noslag/${resourceType}` };
+      console.log(resourceType);
+      const uploadOptions: any = { folder: `b2xclusive/${resourceType}` };
 
       if (resourceType === 'image' && !file.mimetype.startsWith('image')) {
-        reject(new Error('Sorry, this file is not an image, please try again'));
-        return;
+        throw new HttpException(
+          'Sorry, this file is not an image, please try again',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
       } else if (
         resourceType === 'video' &&
         !file.mimetype.startsWith('video')
       ) {
-        reject(new Error('Sorry, this file is not a video, please try again'));
-        return;
+        throw new HttpException(
+          'Sorry, this file is not a video, please try again',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
       } else if (
-        resourceType === 'audio' &&
+        resourceType === 'auto' &&
         !file.mimetype.startsWith('audio')
       ) {
-        reject(
-          new Error('Sorry, this file is not an audio file, please try again'),
+        throw new HttpException(
+          'Sorry, this file is not an auto file, please try again',
+          HttpStatus.INTERNAL_SERVER_ERROR,
         );
-        return;
       }
 
       const upload = v2.uploader.upload_stream(

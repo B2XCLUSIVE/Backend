@@ -28,8 +28,8 @@ export class ArtistController {
   @UseGuards(JwtGuard)
   //@Roles('ADMIN', 'EMPLOYEE')
   @UseInterceptors(FileInterceptor('file'))
-  @Put('post')
-  createPost(
+  @Put('create')
+  create(
     @CurrentUser() user: User,
     @Body() createArtistDto: CreateArtistDto,
     @UploadedFile(
@@ -49,7 +49,7 @@ export class ArtistController {
 
   /************************ GET ARTISTS *****************************/
   @UseGuards(JwtGuard)
-  @Get('posts')
+  @Get('artists')
   findAll(@CurrentUser() user: User) {
     return this.artistService.findAll(user.id);
   }
@@ -62,12 +62,29 @@ export class ArtistController {
   }
 
   /************************ UPDATE ARTIST *****************************/
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateArtistDto: UpdateArtistDto) {
-    return this.artistService.update(+id, updateArtistDto);
+  @UseGuards(JwtGuard)
+  @Patch('update/:id')
+  update(
+    @CurrentUser() user: User,
+    @Param('id') id: string,
+    @Body() updateArtistDto: UpdateArtistDto,
+    @UploadedFile(
+      new ParseFilePipeBuilder()
+        .addMaxSizeValidator({
+          maxSize: 5000000,
+        })
+        .build({
+          fileIsRequired: false,
+          errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+        }),
+    )
+    file: Express.Multer.File,
+  ) {
+    return this.artistService.update(user.id, +id, updateArtistDto, file);
   }
 
   /************************ DELETE ARTIST *****************************/
+  @UseGuards(JwtGuard)
   @Delete('delete/:id')
   remove(@CurrentUser() user: User, @Param('id') id: string) {
     return this.artistService.remove(user.id, +id);

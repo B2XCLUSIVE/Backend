@@ -3,7 +3,7 @@ import { CreateArtistDto } from './dto/create-artist.dto';
 import { UpdateArtistDto } from './dto/update-artist.dto';
 import { CloudinaryService, PrismaService } from 'src/common';
 import { UsersService } from 'src/auth/users/users.service';
-import { Prisma } from '@prisma/client';
+import { Image, Prisma } from '@prisma/client';
 
 @Injectable()
 export class ArtistService {
@@ -56,6 +56,7 @@ export class ArtistService {
           imageId: image?.id,
           userId: user.id,
         },
+        include: { image: true },
       });
 
       return {
@@ -80,7 +81,7 @@ export class ArtistService {
       const user = await this.usersService.getUserById(userId);
 
       const artists = await this.prismaService.artist.findMany({
-        where: { userId: user.id },
+        // where: { userId: user.id },
         include: {
           image: true,
           user: { include: { image: true } },
@@ -141,8 +142,95 @@ export class ArtistService {
     }
   }
 
-  update(id: number, updateArtistDto: UpdateArtistDto) {
-    return `This action updates a #${id} artist`;
+  public async update(
+    userId: number,
+    id: number,
+    updateArtistDto: UpdateArtistDto,
+    file?: Express.Multer.File,
+  ) {
+    try {
+      const user = await this.usersService.getUserById(userId);
+
+      console.log(updateArtistDto);
+      if (!Object.keys(updateArtistDto).length) {
+        return {
+          status: 'No Updates',
+          data: [],
+        };
+      }
+
+      const existingArtist = await this.prismaService.artist.findUnique({
+        where: { id },
+        include: { image: true },
+      });
+
+      if (!existingArtist) {
+        throw new HttpException('Artist not found', HttpStatus.NOT_FOUND);
+      }
+
+      let image = null;
+      if (file) {
+        if (existingArtist.image) {
+          await this.cloudinaryService.deleteResource(
+            existingArtist.image.publicId,
+          );
+        }
+
+        const imagesLink = await this.cloudinaryService
+          .uploadImage(file)
+          .catch((error) => {
+            throw new HttpException(error, HttpStatus.BAD_REQUEST);
+          });
+
+        if (existingArtist.image) {
+          image = await this.prismaService.image.update({
+            where: { id: existingArtist.image.id },
+            data: {
+              publicId: imagesLink.public_id,
+              url: imagesLink.url,
+            },
+          });
+        } else {
+          image = await this.prismaService.image.create({
+            data: {
+              publicId: imagesLink.public_id,
+              url: imagesLink.url,
+            },
+          });
+        }
+      }
+
+      const updatedArtist = await this.prismaService.artist.update({
+        where: { id },
+        data: {
+          name: updateArtistDto.name,
+          bio: updateArtistDto.bio,
+          imageId: image?.id,
+        },
+        include: { image: true },
+      });
+
+      return {
+        status: 'Success',
+        message: 'Artist updated successfully',
+        data: updatedArtist,
+      };
+    } catch (error) {
+      this.logger.error(error);
+      if (error instanceof HttpException) {
+        throw error;
+      } else if (error instanceof Prisma.PrismaClientValidationError) {
+        throw new HttpException(
+          'Validation error occurred while updating Artist',
+          HttpStatus.BAD_REQUEST,
+        );
+      } else {
+        throw new HttpException(
+          'An error occurred while updating Artist',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+    }
   }
 
   async remove(userId: number, id: number) {

@@ -60,14 +60,31 @@ export class PostController {
     return this.postService.findOne(user.id, +id);
   }
 
-  /************************ UPDATE ARTIST *****************************/
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updatePostDto: UpdatePostDto) {
-    return this.postService.update(+id, updatePostDto);
+  /************************ UPDATE post *****************************/
+  @UseGuards(JwtGuard)
+  @Patch('update/:id')
+  @UseInterceptors(FilesInterceptor('files'))
+  update(
+    @CurrentUser() user: User,
+    @Body() updatePostDto: UpdatePostDto,
+    @Param('id') id: string,
+    @UploadedFiles(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 5000000 }),
+          //new FileTypeValidator({ fileType: 'image/jpeg' }),
+        ],
+        fileIsRequired: false,
+      }),
+    )
+    files: Array<Express.Multer.File>,
+  ) {
+    return this.postService.update(user.id, +id, updatePostDto, files);
   }
 
   /************************ DELETE POST *****************************/
-  @Delete(':id')
+  @UseGuards(JwtGuard)
+  @Delete('delete/:id')
   remove(@CurrentUser() user: User, @Param('id') id: string) {
     return this.postService.remove(user.id, +id);
   }

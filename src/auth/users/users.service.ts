@@ -1,14 +1,17 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 import {
   JwtAuthService,
   PrismaService,
   OTPService,
   MailService,
+  CloudinaryService,
 } from 'src/common';
 import { OtpDto } from './dto/otp.dto';
 import { OtpVerifyDto } from './dto/otp.verify.dto';
 import { CreateUserDto } from './dto/create-user.dto';
+import { Prisma } from '@prisma/client';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -16,6 +19,8 @@ export class UsersService {
     private readonly prismaService: PrismaService,
     private readonly otpService: OTPService,
     private readonly mailService: MailService,
+    private readonly cloudinaryService: CloudinaryService,
+    private readonly logger: Logger,
   ) {}
 
   async forgotPassword({ email }: OtpDto) {
@@ -206,6 +211,105 @@ export class UsersService {
         'Invalid email or password',
         HttpStatus.BAD_REQUEST,
       );
+    }
+  }
+
+  async updateUser(
+    userId: number,
+    updateUserDto: UpdateUserDto,
+    file?: Express.Multer.File,
+  ): Promise<any> {
+    try {
+      const user = await this.getUserById(userId);
+
+      const existingUser = await this.prismaService.user.findUnique({
+        where: { id: user.id },
+        include: { image: true },
+      });
+
+      if (!existingUser) {
+        throw new HttpException(
+          `User with id number ${userId} not found`,
+          HttpStatus.NOT_FOUND,
+        );
+      }
+
+      if (!Object.keys(updateUserDto).length) {
+        return {
+          status: 'No Updates',
+          data: [],
+        };
+      }
+
+      let image = null;
+      if (file) {
+        if (existingUser.image) {
+          await this.cloudinaryService.deleteResource(
+            existingUser.image.publicId,
+          );
+        }
+
+        const imagesLink = await this.cloudinaryService
+          .uploadImage(file)
+          .catch((error) => {
+            throw new HttpException(error, HttpStatus.BAD_REQUEST);
+          });
+
+        if (existingUser.image) {
+          image = await this.prismaService.image.update({
+            where: { id: existingUser.image.id },
+            data: {
+              publicId: imagesLink.public_id,
+              url: imagesLink.url,
+            },
+          });
+        } else {
+          image = await this.prismaService.image.create({
+            data: {
+              publicId: imagesLink.public_id,
+              url: imagesLink.url,
+            },
+          });
+        }
+      }
+
+      const updatedUser = await this.prismaService.user.update({
+        where: { id: userId },
+        data: {
+          userName: updateUserDto.userName,
+          bio: updateUserDto.bio,
+          ...updateUserDto,
+          imageId: image?.id,
+          socials: updateUserDto?.socials?.map((social) => ({
+            Facebook: social?.facebook,
+            twitter: social.twitter,
+            Instagram: social.instagram,
+          })),
+        },
+        include: { image: true },
+      });
+
+      return {
+        status: 'Success',
+        message: 'User profile updated successfully',
+        data: {
+          ...updatedUser,
+          password: undefined,
+          otp: undefined,
+          otpExpiration: undefined,
+          passwordReset: undefined,
+          otpExpiryTime: undefined,
+        },
+      };
+    } catch (error) {
+      this.logger.error(error);
+      if (error instanceof Prisma.PrismaClientValidationError) {
+        throw new HttpException(
+          'An error occurred while updating profile',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      throw error;
     }
   }
 }

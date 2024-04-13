@@ -16,7 +16,9 @@ model User {
   role          String?   @default("user")
   email         String?   @unique
   password      String?
-  provider      String    @default("b2Xclusive")
+  bio           String?
+  provider      String?   @default("b2Xclusive")
+  socials       Json?
   passwordReset Boolean?  @default(false)
   otp           String?
   otpExpiryTime DateTime?
@@ -91,17 +93,21 @@ model Album {
 }
 
 model Track {
-  id        Int      @id @default(autoincrement())
-  title     String
-  duration  Int
-  audioUrl  String? // Assuming this is a URL to Cloudinary
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          Int      @id @default(autoincrement())
+  title       String
+  duration    String?
+  description String?
+  audioUrl    String?
+  publicId    String   @unique
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   // Relationships
   albumId  Int?
   artistId Int?
   userId   Int
+
+  likes Like[]
 
   album  Album?  @relation(fields: [albumId], references: [id])
   artist Artist? @relation(fields: [artistId], references: [id], onDelete: Cascade)
@@ -127,8 +133,11 @@ model Event {
 }
 
 model Post {
-  id          Int     @id @default(autoincrement())
+  id          Int      @id @default(autoincrement())
   title       String
+  subtitle    String?
+  categories  String[]
+  tags        String[]
   description String?
 
   createdAt DateTime @default(now())
@@ -136,7 +145,7 @@ model Post {
 
   // Relationships
 
-  authorId Int @unique
+  authorId Int
 
   author  User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
   comment Comment[]
@@ -154,10 +163,14 @@ model Comment {
 
   postId  Int?
   eventId Int?
+  videoId Int?
+  audioId Int?
   userId  Int? @unique
 
   post  Post?  @relation(fields: [postId], references: [id], onDelete: Cascade)
   event Event? @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  video Video? @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  audio Audio? @relation(fields: [audioId], references: [id], onDelete: Cascade)
   user  User?  @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
@@ -172,18 +185,21 @@ model Like {
   videoId Int?
   audioId Int?
   eventId Int?
+  trackId Int?
 
   user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   post  Post?  @relation(fields: [postId], references: [id], onDelete: Cascade)
   event Event? @relation(fields: [eventId], references: [id], onDelete: Cascade)
   video Video? @relation(fields: [videoId], references: [id], onDelete: Cascade)
   audio Audio? @relation(fields: [audioId], references: [id], onDelete: Cascade)
+  track Track? @relation(fields: [trackId], references: [id], onDelete: Cascade)
 }
 
 model Video {
   id          Int      @id @default(autoincrement())
   title       String
   description String?
+  duration    String?
   videoUrl    String?
   publicId    String   @unique
   createdAt   DateTime @default(now())
@@ -196,7 +212,8 @@ model Video {
   artist Artist? @relation(fields: [artistId], references: [id], onDelete: Cascade)
   user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  likes Like[]
+  likes    Like[]
+  comments Comment[]
 }
 
 model Audio {
@@ -215,5 +232,6 @@ model Audio {
   artist Artist? @relation(fields: [artistId], references: [id], onDelete: Cascade)
   user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  likes Like[]
+  likes    Like[]
+  comments Comment[]
 }

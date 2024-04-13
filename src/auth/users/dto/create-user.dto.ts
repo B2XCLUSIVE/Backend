@@ -1,7 +1,5 @@
-import { IsEmail, IsNotEmpty,IsString, IsOptional } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsString, IsOptional } from 'class-validator';
 import { TransformLowerCase } from 'src/common';
-
-
 
 export class CreateUserDto {
   @IsEmail()
@@ -12,6 +10,10 @@ export class CreateUserDto {
   @IsString()
   @IsNotEmpty()
   password: string;
+
+  @IsOptional()
+  @IsNotEmpty()
+  userName: string;
 
   @IsString()
   @IsNotEmpty()
