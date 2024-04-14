@@ -387,4 +387,112 @@ export class PostService {
       throw new Error('Failed to retrieve stats');
     }
   }
+
+  async commentPost(userId: number, id: number, updatePostDto: UpdatePostDto) {
+    try {
+      if (!id) {
+        throw new HttpException(`Post id required`, HttpStatus.BAD_REQUEST);
+      }
+      const user = await this.usersService.getUserById(userId);
+      const post = await this.prismaService.post.findUnique({
+        where: { id },
+        include: {
+          image: true,
+          views: true,
+          comment: true,
+          likes: true,
+          author: { include: { image: true } },
+        },
+      });
+
+      if (!post) {
+        throw new HttpException(
+          `Post with id ${id} not found`,
+          HttpStatus.NOT_FOUND,
+        );
+      }
+
+      const comments = await this.prismaService.comment.create({
+        data: {
+          content: updatePostDto.comment,
+          postId: post.id,
+          userId: user.id,
+        },
+      });
+
+      if (!comments) {
+        throw new HttpException(
+          `Error creating comment`,
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+
+      return {
+        status: 'Success',
+        message: 'Comment published successfully',
+        data: comments,
+      };
+    } catch (error) {
+      this.logger.error(error);
+      if (error instanceof Prisma.PrismaClientValidationError) {
+        throw new HttpException(
+          'An error occurred while creating comment',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      throw error;
+    }
+  }
+
+  async likeOrUnlikePost(id: number, userId: number) {
+    try {
+      const user = await this.usersService.getUserById(userId);
+
+      const post = await this.prismaService.post.findUnique({
+        where: { id },
+        include: {
+          likes: true,
+          author: { include: { image: true } },
+        },
+      });
+
+      if (!post) {
+        throw new HttpException(
+          `Post with id ${id} not found`,
+          HttpStatus.NOT_FOUND,
+        );
+      }
+
+      const userLikedPost = post.likes.some((like) => like.userId === user.id);
+
+      if (userLikedPost) {
+        await this.prismaService.like.deleteMany({
+          where: { postId: post.id, userId },
+        });
+        return {
+          status: 'Success',
+          message: 'Post Unliked',
+        };
+      } else {
+        await this.prismaService.like.create({
+          data: {
+            postId: post.id,
+            userId,
+          },
+        });
+        return {
+          status: 'Success',
+          message: 'Post Liked',
+        };
+      }
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientValidationError) {
+        throw new HttpException(
+          'An error occurred while creating comment',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      throw error;
+    }
+  }
 }

@@ -54,6 +54,24 @@ export class PostController {
     return this.postService.findAll(user.id);
   }
 
+  /************************ COMMENT POST *****************************/
+  @UseGuards(JwtGuard)
+  @Put('comment/:postId')
+  commentPost(
+    @CurrentUser() user: User,
+    @Param('postId') postId: number,
+    @Body() comment: UpdatePostDto,
+  ) {
+    return this.postService.commentPost(user.id, postId, comment);
+  }
+
+  /************************ LIKE POST *****************************/
+  @UseGuards(JwtGuard)
+  @Put(':postId/like')
+  likeOrUnlikePost(@CurrentUser() user: User, @Param('postId') postId: number) {
+    return this.postService.likeOrUnlikePost(postId, user.id);
+  }
+
   /************************ GET STATS *****************************/
   @UseGuards(JwtGuard)
   @Get('stats')

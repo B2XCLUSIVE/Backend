@@ -107,4 +107,26 @@ export class TrackController {
   remove(@Param('id') id: string) {
     return this.trackService.remove(+id);
   }
+
+  /************************ COMMENT VIDEO *****************************/
+  @UseGuards(JwtGuard)
+  @Get('video/comment')
+  commentPost(
+    @CurrentUser() user: User,
+    @Param('videoId') videoId: number,
+    comment: string,
+  ) {
+    return this.trackService.commentVideo(user.id, videoId, comment);
+  }
+
+  /************************ COMMENT AUDIO *****************************/
+  @UseGuards(JwtGuard)
+  @Get('audio/comment')
+  commentAudio(
+    @CurrentUser() user: User,
+    @Param('audioId') audioId: number,
+    comment: string,
+  ) {
+    return this.trackService.commentAudio(user.id, audioId, comment);
+  }
 }

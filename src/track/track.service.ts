@@ -329,6 +329,90 @@ export class TrackService {
     }
   }
 
+  async commentVideo(userId: number, id: number, comment: string) {
+    try {
+      const user = await this.usersService.getUserById(userId);
+      if (!comment) {
+        throw new HttpException('Comment is required.', HttpStatus.BAD_REQUEST);
+      }
+
+      const video = await this.prismaService.video.findUnique({
+        where: { id },
+      });
+
+      if (!video) {
+        throw new HttpException(
+          `Video with id ${id} not found`,
+          HttpStatus.NOT_FOUND,
+        );
+      }
+
+      const comments = await this.prismaService.comment.create({
+        data: {
+          content: comment,
+          videoId: video.id,
+          userId: user.id,
+        },
+      });
+
+      return {
+        status: 'Success',
+        message: 'Comment published successfully',
+        data: comments,
+      };
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientValidationError) {
+        throw new HttpException(
+          'An error occurred while creating comment',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      throw error;
+    }
+  }
+
+  async commentAudio(userId: number, id: number, comment: string) {
+    try {
+      const user = await this.usersService.getUserById(userId);
+      if (!comment) {
+        throw new HttpException('Comment is required.', HttpStatus.BAD_REQUEST);
+      }
+
+      const track = await this.prismaService.track.findUnique({
+        where: { id },
+      });
+
+      if (!track) {
+        throw new HttpException(
+          `Track with id ${id} not found`,
+          HttpStatus.NOT_FOUND,
+        );
+      }
+
+      const comments = await this.prismaService.comment.create({
+        data: {
+          content: comment,
+          audioId: track.id,
+          userId: user.id,
+        },
+      });
+
+      return {
+        status: 'Success',
+        message: 'Comment published successfully',
+        data: comments,
+      };
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientValidationError) {
+        throw new HttpException(
+          'An error occurred while creating comment',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      throw error;
+    }
+  }
+
   update(id: number, updateTrackDto: UpdateTrackDto) {
     return `This action updates a #${id} track`;
   }
