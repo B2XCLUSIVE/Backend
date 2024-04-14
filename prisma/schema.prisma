@@ -128,7 +128,7 @@ model Event {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  userId  Int?      @unique
+  userId  Int?
   image   Image[]
   likes   Like[]
   comment Comment[]
@@ -170,7 +170,7 @@ model Comment {
   eventId Int?
   videoId Int?
   audioId Int?
-  userId  Int? @unique
+  userId  Int?
 
   post  Post?  @relation(fields: [postId], references: [id], onDelete: Cascade)
   event Event? @relation(fields: [eventId], references: [id], onDelete: Cascade)

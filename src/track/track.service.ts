@@ -413,6 +413,59 @@ export class TrackService {
     }
   }
 
+  async likeOrUnlikeVideo(id: number, userId: number) {
+    try {
+      const user = await this.usersService.getUserById(userId);
+
+      const video = await this.prismaService.video.findUnique({
+        where: { id },
+        include: {
+          likes: true,
+        },
+      });
+
+      if (!video) {
+        throw new HttpException(
+          `video with id ${id} not found`,
+          HttpStatus.NOT_FOUND,
+        );
+      }
+
+      const userLikedvideo = video.likes.some(
+        (like) => like.userId === user.id,
+      );
+
+      if (userLikedvideo) {
+        await this.prismaService.like.deleteMany({
+          where: { videoId: video.id, userId },
+        });
+        return {
+          status: 'Success',
+          message: 'Video Unliked',
+        };
+      } else {
+        await this.prismaService.like.create({
+          data: {
+            videoId: video.id,
+            userId,
+          },
+        });
+        return {
+          status: 'Success',
+          message: 'Video Liked',
+        };
+      }
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientValidationError) {
+        throw new HttpException(
+          'An error occurred while liking video',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      throw error;
+    }
+  }
+
   update(id: number, updateTrackDto: UpdateTrackDto) {
     return `This action updates a #${id} track`;
   }

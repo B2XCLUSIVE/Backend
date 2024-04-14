@@ -110,13 +110,23 @@ export class TrackController {
 
   /************************ COMMENT VIDEO *****************************/
   @UseGuards(JwtGuard)
-  @Get('video/comment')
+  @Put('video/:videoId/comment')
   commentPost(
     @CurrentUser() user: User,
     @Param('videoId') videoId: number,
-    comment: string,
+    @Body('comment') comment: string,
   ) {
     return this.trackService.commentVideo(user.id, videoId, comment);
+  }
+
+  /************************ LIKE VIDEO *****************************/
+  @UseGuards(JwtGuard)
+  @Put('video/:videoId/like')
+  likeOrUnlikePost(
+    @CurrentUser() user: User,
+    @Param('videoId') videoId: number,
+  ) {
+    return this.trackService.likeOrUnlikeVideo(videoId, user.id);
   }
 
   /************************ COMMENT AUDIO *****************************/

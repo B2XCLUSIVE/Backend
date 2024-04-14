@@ -488,7 +488,7 @@ export class PostService {
     } catch (error) {
       if (error instanceof Prisma.PrismaClientValidationError) {
         throw new HttpException(
-          'An error occurred while creating comment',
+          'An error occurred while liking post',
           HttpStatus.BAD_REQUEST,
         );
       }
