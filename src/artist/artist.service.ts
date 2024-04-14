@@ -84,6 +84,8 @@ export class ArtistService {
         // where: { userId: user.id },
         include: {
           image: true,
+          videos: true,
+          track: true,
           user: { include: { image: true } },
         },
         orderBy: {
@@ -115,6 +117,8 @@ export class ArtistService {
         where: { id, userId: user.id },
         include: {
           image: true,
+          videos: true,
+          track: true,
           user: { include: { image: true } },
         },
       });

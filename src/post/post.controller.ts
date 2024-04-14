@@ -12,6 +12,7 @@ import {
   MaxFileSizeValidator,
   Put,
   UseInterceptors,
+  Query,
 } from '@nestjs/common';
 import { PostService } from './post.service';
 import { CreatePostDto } from './dto/create-post.dto';
@@ -51,6 +52,23 @@ export class PostController {
   @Get('posts')
   findAll(@CurrentUser() user: User) {
     return this.postService.findAll(user.id);
+  }
+
+  /************************ GET STATS *****************************/
+  @UseGuards(JwtGuard)
+  @Get('stats')
+  async stats(
+    @CurrentUser() user: User,
+    @Query('numofDays') numofDays?: string,
+  ) {
+    try {
+      const days = numofDays ? parseInt(numofDays) : 28;
+
+      return this.postService.stats(user.id, days);
+    } catch (error) {
+      console.error('Error retrieving stats:', error);
+      throw new Error('Failed to retrieve stats');
+    }
   }
 
   /************************ GET POST BY ID *****************************/

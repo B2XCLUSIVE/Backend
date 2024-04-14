@@ -97,6 +97,9 @@ export class PostService {
         // where: { authorId: user.id },
         include: {
           image: true,
+          views: true,
+          comment: true,
+          likes: true,
           author: { include: { image: true } },
         },
         orderBy: {
@@ -128,6 +131,9 @@ export class PostService {
         where: { id, authorId: user.id },
         include: {
           image: true,
+          views: true,
+          comment: true,
+          likes: true,
           author: { include: { image: true } },
         },
       });
@@ -139,6 +145,12 @@ export class PostService {
         );
       }
 
+      await this.prismaService.postViews.create({
+        data: {
+          user: { connect: { id: post.author.id } },
+          post: { connect: { id: id } },
+        },
+      });
       return {
         status: 'Success',
         message: 'Post retrieved successfully',
@@ -305,6 +317,74 @@ export class PostService {
         );
       }
       throw error;
+    }
+  }
+
+  async stats(userId: number, numofDays: number = 28): Promise<any> {
+    try {
+      const user = await this.usersService.getUserById(userId);
+
+      const currentDate = new Date();
+
+      const startDate = new Date();
+
+      startDate.setDate(startDate.getDate() - (numofDays || 28));
+
+      const totalPosts = await this.prismaService.post.count({
+        where: {
+          authorId: user.id,
+          createdAt: { gte: startDate, lte: currentDate },
+        },
+      });
+
+      const totalVideos = await this.prismaService.video.count({
+        where: {
+          userId: user.id,
+          createdAt: { gte: startDate, lte: currentDate },
+        },
+      });
+
+      const totalAudios = await this.prismaService.track.count({
+        where: {
+          userId: user.id,
+          createdAt: { gte: startDate, lte: currentDate },
+        },
+      });
+
+      const totalPostViews = await this.prismaService.postViews.count({
+        where: {
+          user: { id: user.id },
+          createdAt: { gte: startDate, lte: currentDate },
+        },
+      });
+
+      const totalVideoViews = await this.prismaService.videoViews.count({
+        where: {
+          user: { id: user.id },
+          createdAt: { gte: startDate, lte: currentDate },
+        },
+      });
+
+      const totalAudioViews = await this.prismaService.audioTrackViews.count({
+        where: {
+          user: { id: user.id },
+          createdAt: { gte: startDate, lte: currentDate },
+        },
+      });
+
+      return {
+        status: true,
+        message: 'Successfully retrieved stats',
+        totalPosts,
+        totalVideos,
+        totalAudios,
+        totalPostViews,
+        totalVideoViews,
+        totalAudioViews,
+      };
+    } catch (error) {
+      console.error('Error retrieving stats:', error);
+      throw new Error('Failed to retrieve stats');
     }
   }
 }

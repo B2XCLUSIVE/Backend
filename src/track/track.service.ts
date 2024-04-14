@@ -62,7 +62,7 @@ export class TrackService {
         audioUrls.map(async (audioUrl, index) => {
           return await this.prismaService.track.create({
             data: {
-              title: `${title} ${index + 1}`,
+              title: `${title}`,
               duration,
               description,
               audioUrl,
@@ -142,7 +142,8 @@ export class TrackService {
         videoUrls.map(async (videoUrl, index) => {
           return await this.prismaService.video.create({
             data: {
-              title: `${title} ${index + 1}`,
+              //title: `${title} ${index + 1}`,
+              title: `${title}`,
               duration,
               description,
               categories,
@@ -219,6 +220,7 @@ export class TrackService {
           user: { include: { image: true } },
           comments: true,
           likes: true,
+          views: true,
         },
         orderBy: {
           createdAt: 'desc',
@@ -249,6 +251,9 @@ export class TrackService {
         where: { id },
         include: {
           artist: true,
+          comments: true,
+          likes: true,
+          views: true,
           user: { include: { image: true } },
         },
       });
@@ -260,6 +265,12 @@ export class TrackService {
         );
       }
 
+      await this.prismaService.videoViews.create({
+        data: {
+          user: { connect: { id: video.user.id } },
+          video: { connect: { id: id } },
+        },
+      });
       return {
         status: 'Success',
         message: 'Video retrieved successfully',
@@ -294,6 +305,13 @@ export class TrackService {
           HttpStatus.NOT_FOUND,
         );
       }
+
+      await this.prismaService.audioTrackViews.create({
+        data: {
+          user: { connect: { id: audio.user.id } },
+          audio: { connect: { id: id } },
+        },
+      });
 
       return {
         status: 'Success',

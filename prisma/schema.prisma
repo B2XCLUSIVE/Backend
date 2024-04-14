@@ -28,15 +28,18 @@ model User {
   // Relationships
   imageId Int? @unique
 
-  image    Image?    @relation(fields: [imageId], references: [id])
-  posts    Post[]
-  comments Comment[]
-  likes    Like[]
-  events   Event[]
-  artist   Artist[]
-  videos   Video[]
-  audios   Audio[]
-  track    Track[]
+  image           Image?            @relation(fields: [imageId], references: [id])
+  posts           Post[]
+  comments        Comment[]
+  likes           Like[]
+  events          Event[]
+  artist          Artist[]
+  videos          Video[]
+  audios          Audio[]
+  track           Track[]
+  videoViews      VideoViews[]
+  postViews       PostViews[]
+  audioTrackViews AudioTrackViews[]
 }
 
 model Image {
@@ -108,6 +111,7 @@ model Track {
   userId   Int
 
   likes Like[]
+  views AudioTrackViews[]
 
   album  Album?  @relation(fields: [albumId], references: [id])
   artist Artist? @relation(fields: [artistId], references: [id], onDelete: Cascade)
@@ -147,10 +151,11 @@ model Post {
 
   authorId Int
 
-  author  User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  author  User        @relation(fields: [authorId], references: [id], onDelete: Cascade)
   comment Comment[]
   likes   Like[]
-  image   Image[]   @relation("ImageToPost")
+  image   Image[]     @relation("ImageToPost")
+  views   PostViews[]
 }
 
 model Comment {
@@ -216,6 +221,7 @@ model Video {
 
   likes    Like[]
   comments Comment[]
+  views    VideoViews[]
 }
 
 model Audio {
@@ -236,4 +242,41 @@ model Audio {
 
   likes    Like[]
   comments Comment[]
+}
+
+// Views tracking tables
+model VideoViews {
+  id        Int      @id @default(autoincrement())
+  videoId   Int
+  userId    Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relationships
+  video Video @relation(fields: [videoId], references: [id])
+  user  User  @relation(fields: [userId], references: [id])
+}
+
+model AudioTrackViews {
+  id        Int      @id @default(autoincrement())
+  audioId   Int
+  userId    Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relationships
+  audio Track @relation(fields: [audioId], references: [id])
+  user  User  @relation(fields: [userId], references: [id])
+}
+
+model PostViews {
+  id        Int      @id @default(autoincrement())
+  postId    Int
+  userId    Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relationships
+  post Post @relation(fields: [postId], references: [id])
+  user User @relation(fields: [userId], references: [id])
 }
