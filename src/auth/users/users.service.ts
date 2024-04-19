@@ -188,6 +188,14 @@ export class UsersService {
   async getUserById(userId: number) {
     const user = await this.prismaService.user.findUnique({
       where: { id: userId },
+      include: {
+        image: true,
+        posts: true,
+        videos: true,
+        track: true,
+        comments: true,
+        likes: true,
+      },
     });
 
     if (!user) {

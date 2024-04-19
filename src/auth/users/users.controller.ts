@@ -46,6 +46,13 @@ export class UsersController {
     return this.usersService.verifyOTP(otpVerifyDto);
   }
 
+  /************************ SINGLE USER *****************************/
+  @Get('singleUser/:id')
+  @UseGuards(JwtGuard)
+  async getUser(@Param('id') id: number) {
+    return await this.usersService.getUserById(id);
+  }
+
   /************************ Update USER *****************************/
   @UseGuards(JwtGuard)
   // @Roles('ADMIN', 'EMPLOYEE')
