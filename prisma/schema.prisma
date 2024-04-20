@@ -20,6 +20,8 @@ model User {
   friends       String?
   field1        String
   field2        String
+  field3        String
+  field4        String
   provider      String?   @default("b2Xclusive")
   socials       Json?
   passwordReset Boolean?  @default(false)

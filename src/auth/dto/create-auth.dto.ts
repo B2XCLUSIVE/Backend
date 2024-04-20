@@ -29,5 +29,9 @@ export class CreateAuthDto {
 
   @IsString()
   @IsOptional()
+  field3: string;
+
+  @IsString()
+  @IsOptional()
   friends: string;
 }
