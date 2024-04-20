@@ -21,7 +21,11 @@ export class CreateAuthDto {
 
   @IsString()
   @IsOptional()
-  field: string;
+  field1: string;
+
+  @IsString()
+  @IsOptional()
+  field2: string;
 
   @IsString()
   @IsOptional()
