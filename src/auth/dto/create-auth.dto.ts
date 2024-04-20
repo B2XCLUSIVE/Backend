@@ -18,20 +18,4 @@ export class CreateAuthDto {
   @IsString()
   @IsOptional()
   role: string;
-
-  @IsString()
-  @IsOptional()
-  field1: string;
-
-  @IsString()
-  @IsOptional()
-  field2: string;
-
-  @IsString()
-  @IsOptional()
-  field3: string;
-
-  @IsString()
-  @IsOptional()
-  friends: string;
 }

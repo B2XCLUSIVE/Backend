@@ -85,11 +85,6 @@ export class AuthService {
         role,
         email: createAuthDto.email,
         password,
-        field1: createAuthDto.field1,
-        field2: createAuthDto.field2,
-        field3: createAuthDto.field3,
-        field4: createAuthDto.field2,
-        friends: createAuthDto.friends,
       },
     });
   }
