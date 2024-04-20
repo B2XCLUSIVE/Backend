@@ -17,6 +17,7 @@ model User {
   email         String?   @unique
   password      String?
   bio           String?
+  friends       String?
   provider      String?   @default("b2Xclusive")
   socials       Json?
   passwordReset Boolean?  @default(false)
