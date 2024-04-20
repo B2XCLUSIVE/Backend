@@ -18,7 +18,8 @@ model User {
   password      String?
   bio           String?
   friends       String?
-  field         String
+  field1        String
+  field2        String
   provider      String?   @default("b2Xclusive")
   socials       Json?
   passwordReset Boolean?  @default(false)
