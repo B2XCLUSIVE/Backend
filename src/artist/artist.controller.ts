@@ -48,14 +48,14 @@ export class ArtistController {
   }
 
   /************************ GET ARTISTS *****************************/
-  @UseGuards(JwtGuard)
+  // @UseGuards(JwtGuard)
   @Get('artists')
   findAll(@CurrentUser() user: User) {
     return this.artistService.findAll(user.id);
   }
 
   /************************ GET ARTIST BY ID *****************************/
-  @UseGuards(JwtGuard)
+  //  @UseGuards(JwtGuard)
   @Get(':id')
   findOne(@CurrentUser() user: User, @Param('id') id: string) {
     return this.artistService.findOne(user.id, +id);

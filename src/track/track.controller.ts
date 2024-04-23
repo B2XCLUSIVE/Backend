@@ -69,28 +69,28 @@ export class TrackController {
   }
 
   /************************ GET AUDIOS *****************************/
-  @UseGuards(JwtGuard)
+  //@UseGuards(JwtGuard)
   @Get('audios')
   findAllAudios(@CurrentUser() user: User) {
     return this.trackService.findAllAudios(user.id);
   }
 
   /************************ GET VIDEOS *****************************/
-  @UseGuards(JwtGuard)
+  // @UseGuards(JwtGuard)
   @Get('videos')
   findAllVideos(@CurrentUser() user: User) {
     return this.trackService.findAllVideos(user.id);
   }
 
   /************************ GET VIDEO *****************************/
-  @UseGuards(JwtGuard)
+  // @UseGuards(JwtGuard)
   @Get('video/:id')
   findVideo(@CurrentUser() user: User, @Param('id') id: string) {
     return this.trackService.findVideo(user.id, +id);
   }
 
   /************************ GET AUDIO *****************************/
-  @UseGuards(JwtGuard)
+  // @UseGuards(JwtGuard)
   @Get('audio/:id')
   findOne(@CurrentUser() user: User, @Param('id') id: string) {
     return this.trackService.findAudio(user.id, +id);

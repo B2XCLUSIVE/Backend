@@ -320,4 +320,39 @@ export class UsersService {
       throw error;
     }
   }
+
+  public async findAll(userId: number): Promise<any> {
+    try {
+      const user = await this.getUserById(userId);
+
+      const users = await this.prismaService.user.findMany({
+        // where: { authorId: user.id },
+        include: {
+          image: true,
+          posts: true,
+          videos: true,
+          track: true,
+          comments: true,
+          likes: true,
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+      });
+
+      return {
+        status: 'Success',
+        message: 'users retrieved successfully',
+        data: users,
+      };
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientValidationError) {
+        throw new HttpException(
+          'An error occurred while fetching posts',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      throw error;
+    }
+  }
 }

@@ -48,7 +48,7 @@ export class PostController {
   }
 
   /************************ GET POSTS *****************************/
-  @UseGuards(JwtGuard)
+  //@UseGuards(JwtGuard)
   @Get('posts')
   findAll(@CurrentUser() user: User) {
     return this.postService.findAll(user.id);
@@ -90,7 +90,7 @@ export class PostController {
   }
 
   /************************ GET POST BY ID *****************************/
-  @UseGuards(JwtGuard)
+  //@UseGuards(JwtGuard)
   @Get(':id')
   findOne(@CurrentUser() user: User, @Param('id') id: string) {
     return this.postService.findOne(user.id, +id);

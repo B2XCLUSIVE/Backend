@@ -31,6 +31,13 @@ export class UsersController {
     return this.usersService.forgotPassword(otpDto);
   }
 
+  /************************ GET USERS *****************************/
+  //@UseGuards(JwtGuard)
+  @Get('allUsers')
+  findAll(@CurrentUser() user: User) {
+    return this.usersService.findAll(user.id);
+  }
+
   @Post('reset-password')
   resetPassword(@Body() createUserDto: CreateUserDto) {
     return this.usersService.resetPassword(createUserDto);
