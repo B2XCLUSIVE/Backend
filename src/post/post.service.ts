@@ -89,9 +89,9 @@ export class PostService {
     }
   }
 
-  public async findAll(userId: number): Promise<any> {
+  public async findAll(): Promise<any> {
     try {
-      const user = await this.usersService.getUserById(userId);
+      // const user = await this.usersService.getUserById(userId);
 
       const post = await this.prismaService.post.findMany({
         // where: { authorId: user.id },
@@ -123,12 +123,12 @@ export class PostService {
     }
   }
 
-  public async findOne(userId: number, id: number): Promise<any> {
+  public async findOne(id: number): Promise<any> {
     try {
-      const user = await this.usersService.getUserById(userId);
+      //const user = await this.usersService.getUserById(userId);
 
       const post = await this.prismaService.post.findUnique({
-        where: { id, authorId: user.id },
+        where: { id },
         include: {
           image: true,
           views: true,

@@ -50,8 +50,8 @@ export class PostController {
   /************************ GET POSTS *****************************/
   //@UseGuards(JwtGuard)
   @Get('posts')
-  findAll(@CurrentUser() user: User) {
-    return this.postService.findAll(user.id);
+  findAll() { // @CurrentUser() user: User
+    return this.postService.findAll();
   }
 
   /************************ COMMENT POST *****************************/
@@ -92,8 +92,8 @@ export class PostController {
   /************************ GET POST BY ID *****************************/
   //@UseGuards(JwtGuard)
   @Get(':id')
-  findOne(@CurrentUser() user: User, @Param('id') id: string) {
-    return this.postService.findOne(user.id, +id);
+  findOne(@Param('id') id: string) {
+    return this.postService.findOne(+id);
   }
 
   /************************ UPDATE post *****************************/

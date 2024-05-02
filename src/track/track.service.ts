@@ -164,6 +164,7 @@ export class TrackService {
         data: vid,
       };
     } catch (error) {
+      console.log(error);
       this.logger.error(error);
       if (error instanceof HttpException) {
         throw error;
@@ -470,7 +471,69 @@ export class TrackService {
     return `This action updates a #${id} track`;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} track`;
+  async removeVid(userId: number, id: number) {
+    try {
+      const user = await this.usersService.getUserById(userId);
+
+      const video = await this.prismaService.video.findUnique({
+        where: { id },
+      });
+
+      if (!video) {
+        throw new HttpException('video not found', HttpStatus.NOT_FOUND);
+      }
+
+      await this.prismaService.video.delete({
+        where: {
+          id,
+        },
+      });
+
+      return {
+        status: 'Success',
+        message: 'video deleted successfully',
+      };
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientValidationError) {
+        throw new HttpException(
+          'An error occurred while deleting video',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      throw error;
+    }
+  }
+
+  async removeAudio(userId: number, id: number) {
+    try {
+      const user = await this.usersService.getUserById(userId);
+
+      const audio = await this.prismaService.track.findUnique({
+        where: { id },
+      });
+
+      if (!audio) {
+        throw new HttpException('audio not found', HttpStatus.NOT_FOUND);
+      }
+
+      await this.prismaService.track.delete({
+        where: {
+          id,
+        },
+      });
+
+      return {
+        status: 'Success',
+        message: 'audio deleted successfully',
+      };
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientValidationError) {
+        throw new HttpException(
+          'An error occurred while deleting audio',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      throw error;
+    }
   }
 }

@@ -89,6 +89,13 @@ export class TrackController {
     return this.trackService.findVideo(user.id, +id);
   }
 
+  /************************ DELETE Video *****************************/
+  @UseGuards(JwtGuard)
+  @Delete('video/delete/:id')
+  removeVid(@CurrentUser() user: User, @Param('id') id: string) {
+    return this.trackService.removeVid(user.id, +id);
+  }
+
   /************************ GET AUDIO *****************************/
   // @UseGuards(JwtGuard)
   @Get('audio/:id')
@@ -97,15 +104,17 @@ export class TrackController {
   }
 
   /************************ UPDATE AUDIO *****************************/
+  @UseGuards(JwtGuard)
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateTrackDto: UpdateTrackDto) {
     return this.trackService.update(+id, updateTrackDto);
   }
 
   /************************ DELETE AUDIO *****************************/
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.trackService.remove(+id);
+  @UseGuards(JwtGuard)
+  @Delete('audio/delete/:id')
+  removeAudio(@CurrentUser() user: User, @Param('id') id: string) {
+    return this.trackService.removeAudio(user.id, +id);
   }
 
   /************************ COMMENT VIDEO *****************************/
