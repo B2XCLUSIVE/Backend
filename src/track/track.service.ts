@@ -177,9 +177,9 @@ export class TrackService {
     }
   }
 
-  public async findAllAudios(userId: number): Promise<any> {
+  public async findAllAudios(): Promise<any> {
     try {
-      const user = await this.usersService.getUserById(userId);
+      //const user = await this.usersService.getUserById(userId);
 
       const audios = await this.prismaService.track.findMany({
         // where: { authorId: user.id },
@@ -210,9 +210,9 @@ export class TrackService {
     }
   }
 
-  public async findAllVideos(userId: number): Promise<any> {
+  public async findAllVideos(): Promise<any> {
     try {
-      const user = await this.usersService.getUserById(userId);
+      // const user = await this.usersService.getUserById(userId);
 
       const videos = await this.prismaService.video.findMany({
         // where: { authorId: user.id },
@@ -244,9 +244,9 @@ export class TrackService {
     }
   }
 
-  public async findVideo(userId: number, id: number): Promise<any> {
+  public async findVideo(id: number): Promise<any> {
     try {
-      const user = await this.usersService.getUserById(userId);
+      //const user = await this.usersService.getUserById(userId);
 
       const video = await this.prismaService.video.findUnique({
         where: { id },
@@ -288,9 +288,9 @@ export class TrackService {
     }
   }
 
-  public async findAudio(userId: number, id: number): Promise<any> {
+  public async findAudio(id: number): Promise<any> {
     try {
-      const user = await this.usersService.getUserById(userId);
+      // const user = await this.usersService.getUserById(userId);
 
       const audio = await this.prismaService.track.findUnique({
         where: { id },

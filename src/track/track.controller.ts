@@ -71,22 +71,22 @@ export class TrackController {
   /************************ GET AUDIOS *****************************/
   //@UseGuards(JwtGuard)
   @Get('audios')
-  findAllAudios(@CurrentUser() user: User) {
-    return this.trackService.findAllAudios(user.id);
+  findAllAudios() {
+    return this.trackService.findAllAudios();
   }
 
   /************************ GET VIDEOS *****************************/
   // @UseGuards(JwtGuard)
   @Get('videos')
-  findAllVideos(@CurrentUser() user: User) {
-    return this.trackService.findAllVideos(user.id);
+  findAllVideos() {
+    return this.trackService.findAllVideos();
   }
 
   /************************ GET VIDEO *****************************/
   // @UseGuards(JwtGuard)
   @Get('video/:id')
-  findVideo(@CurrentUser() user: User, @Param('id') id: string) {
-    return this.trackService.findVideo(user.id, +id);
+  findVideo(@Param('id') id: string) {
+    return this.trackService.findVideo(+id);
   }
 
   /************************ DELETE Video *****************************/
@@ -99,8 +99,8 @@ export class TrackController {
   /************************ GET AUDIO *****************************/
   // @UseGuards(JwtGuard)
   @Get('audio/:id')
-  findOne(@CurrentUser() user: User, @Param('id') id: string) {
-    return this.trackService.findAudio(user.id, +id);
+  findOne(@Param('id') id: string) {
+    return this.trackService.findAudio(+id);
   }
 
   /************************ UPDATE AUDIO *****************************/
