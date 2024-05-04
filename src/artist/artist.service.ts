@@ -76,9 +76,9 @@ export class ArtistService {
     }
   }
 
-  public async findAll(userId: number): Promise<any> {
+  public async findAll(): Promise<any> {
     try {
-      const user = await this.usersService.getUserById(userId);
+      //const user = await this.usersService.getUserById(userId);
 
       const artists = await this.prismaService.artist.findMany({
         // where: { userId: user.id },
@@ -109,12 +109,12 @@ export class ArtistService {
     }
   }
 
-  public async findOne(userId: number, id: number): Promise<any> {
+  public async findOne(id: number): Promise<any> {
     try {
-      const user = await this.usersService.getUserById(userId);
+      //const user = await this.usersService.getUserById(userId);
 
       const artist = await this.prismaService.artist.findUnique({
-        where: { id, userId: user.id },
+        where: { id },
         include: {
           image: true,
           videos: true,

@@ -56,6 +56,10 @@ model Image {
   albums Album[]
   artist Artist[]
   posts  Post[]   @relation("ImageToPost")
+  Video  Video[]
+  Track  Track[]
+
+  Audio Audio[]
 }
 
 model Artist {
@@ -109,13 +113,14 @@ model Track {
   albumId  Int?
   artistId Int?
   userId   Int
+  imageId  Int?
+  likes    Like[]
+  views    AudioTrackViews[]
 
-  likes Like[]
-  views AudioTrackViews[]
-
-  album  Album?  @relation(fields: [albumId], references: [id])
-  artist Artist? @relation(fields: [artistId], references: [id], onDelete: Cascade)
-  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  thumbnail Image?  @relation(fields: [imageId], references: [id])
+  album     Album?  @relation(fields: [albumId], references: [id])
+  artist    Artist? @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Event {
@@ -214,10 +219,12 @@ model Video {
 
   // Relationships
   artistId Int?
+  imageId  Int?
   userId   Int
 
-  artist Artist? @relation(fields: [artistId], references: [id], onDelete: Cascade)
-  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  thumbnail Image?  @relation(fields: [imageId], references: [id])
+  artist    Artist? @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  user      User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   likes    Like[]
   comments Comment[]
@@ -242,6 +249,8 @@ model Audio {
 
   likes    Like[]
   comments Comment[]
+  Image    Image?    @relation(fields: [imageId], references: [id])
+  imageId  Int?
 }
 
 // Views tracking tables

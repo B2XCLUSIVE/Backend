@@ -67,8 +67,8 @@ export class TrackService {
               description,
               audioUrl,
               publicId: publicIds[index],
-              artist: { connect: { id: artistId } },
-              user: { connect: { id: userId } },
+              artist: { connect: { id: artist.id } },
+              user: { connect: { id: user.id } },
             },
             include: { artist: true },
           });
@@ -93,10 +93,250 @@ export class TrackService {
     }
   }
 
+  public async findAllAudios(): Promise<any> {
+    try {
+      //const user = await this.usersService.getUserById(userId);
+
+      const audios = await this.prismaService.track.findMany({
+        // where: { authorId: user.id },
+        include: {
+          artist: { include: { image: true } },
+          user: { include: { image: true } },
+          //comments: true,
+          likes: true,
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+      });
+
+      return {
+        status: 'Success',
+        message: 'tracks retrieved successfully',
+        data: audios,
+      };
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientValidationError) {
+        throw new HttpException(
+          'An error occurred while fetching tracks',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      throw error;
+    }
+  }
+
+  public async findAudio(id: number): Promise<any> {
+    try {
+      // const user = await this.usersService.getUserById(userId);
+
+      const audio = await this.prismaService.track.findUnique({
+        where: { id },
+        include: {
+          artist: true,
+          user: { include: { image: true } },
+        },
+      });
+
+      if (!audio) {
+        throw new HttpException(
+          `audio with id ${id} not found`,
+          HttpStatus.NOT_FOUND,
+        );
+      }
+
+      await this.prismaService.audioTrackViews.create({
+        data: {
+          user: { connect: { id: audio.user.id } },
+          audio: { connect: { id: id } },
+        },
+      });
+
+      return {
+        status: 'Success',
+        message: 'Audio track retrieved successfully',
+        data: audio,
+      };
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientValidationError) {
+        throw new HttpException(
+          'An error occurred while fetching audio',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      throw error;
+    }
+  }
+
+  async commentAudio(userId: number, id: number, comment: string) {
+    try {
+      const user = await this.usersService.getUserById(userId);
+      if (!comment) {
+        throw new HttpException('Comment is required.', HttpStatus.BAD_REQUEST);
+      }
+
+      const track = await this.prismaService.track.findUnique({
+        where: { id },
+      });
+
+      if (!track) {
+        throw new HttpException(
+          `Track with id ${id} not found`,
+          HttpStatus.NOT_FOUND,
+        );
+      }
+
+      const comments = await this.prismaService.comment.create({
+        data: {
+          content: comment,
+          audioId: track.id,
+          userId: user.id,
+        },
+      });
+
+      return {
+        status: 'Success',
+        message: 'Comment published successfully',
+        data: comments,
+      };
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientValidationError) {
+        throw new HttpException(
+          'An error occurred while creating comment',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      throw error;
+    }
+  }
+
+  public async updateAudio(
+    userId: number,
+    trackId: number,
+    updateTrackDto: UpdateTrackDto,
+    audios?: Array<Express.Multer.File>,
+  ): Promise<any> {
+    try {
+      const user = await this.usersService.getUserById(userId);
+      if (!user) {
+        throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+      }
+
+      // Get the existing track
+      const existingTrack = await this.prismaService.track.findUnique({
+        where: { id: trackId },
+        include: { artist: true },
+      });
+
+      if (!existingTrack) {
+        throw new HttpException('Track not found', HttpStatus.NOT_FOUND);
+      }
+
+      let audioUrl: string | undefined;
+      let publicId: string | undefined;
+
+      if (audios && audios.length > 0) {
+        // Delete existing audio if a new one is being uploaded
+        if (existingTrack.publicId) {
+          await this.cloudinaryService.deleteResource(existingTrack.publicId);
+        }
+
+        // Upload new audio files to Cloudinary
+        const uploadedAudios = await Promise.all(
+          audios.map(async (audio) => {
+            const result = await this.cloudinaryService.uploadMedia(
+              audio,
+              'auto',
+            );
+            return {
+              publicId: result.public_id,
+              audioUrl: result.url,
+            };
+          }),
+        );
+
+        // Get the first uploaded audio
+        audioUrl = uploadedAudios[0].audioUrl;
+        publicId = uploadedAudios[0].publicId;
+      }
+
+      // Prepare data for update
+      const updateData = {
+        ...updateTrackDto,
+        audioUrl: audioUrl ?? existingTrack.audioUrl,
+        publicId: publicId ?? existingTrack.publicId,
+      };
+
+      // Update the track in the database
+      const updatedTrack = await this.prismaService.track.update({
+        where: { id: trackId },
+        data: updateData,
+        include: { artist: true },
+      });
+
+      return {
+        status: 'Success',
+        message: 'Audio track updated successfully',
+        data: updatedTrack,
+      };
+    } catch (error) {
+      this.logger.error(error);
+      if (error instanceof HttpException) {
+        throw error;
+      } else if (error instanceof Prisma.PrismaClientValidationError) {
+        throw new HttpException(
+          'Validation error occurred while updating track',
+          HttpStatus.BAD_REQUEST,
+        );
+      } else {
+        throw new HttpException(
+          'An error occurred while updating track',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+    }
+  }
+
+  async removeAudio(userId: number, id: number) {
+    try {
+      const user = await this.usersService.getUserById(userId);
+
+      const audio = await this.prismaService.track.findUnique({
+        where: { id },
+      });
+
+      if (!audio) {
+        throw new HttpException('audio not found', HttpStatus.NOT_FOUND);
+      }
+
+      await this.prismaService.track.delete({
+        where: {
+          id,
+        },
+      });
+
+      return {
+        status: 'Success',
+        message: 'audio deleted successfully',
+      };
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientValidationError) {
+        throw new HttpException(
+          'An error occurred while deleting audio',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      throw error;
+    }
+  }
+
+  /***************************************  VIDEO STARTS *****************************************/
+
   async createVideo(
     userId: number,
     createTrackDto: CreateTrackDto,
     videos: Array<Express.Multer.File>,
+    thumbnail?: Express.Multer.File,
   ): Promise<any> {
     try {
       const { title, description, duration, artistId, categories, tags } =
@@ -138,22 +378,37 @@ export class TrackService {
         videoUrls = uploadedAudios;
       }
 
+      let image = null;
+      if (thumbnail) {
+        const imagesLink = await this.cloudinaryService
+          .uploadImage(thumbnail)
+          .catch((error) => {
+            throw new HttpException(error, HttpStatus.BAD_REQUEST);
+          });
+        image = await this.prismaService.image.create({
+          data: {
+            publicId: imagesLink.public_id,
+            url: imagesLink.url,
+          },
+        });
+      }
+
       const vid = await Promise.all(
         videoUrls.map(async (videoUrl, index) => {
           return await this.prismaService.video.create({
             data: {
-              //title: `${title} ${index + 1}`,
               title: `${title}`,
               duration,
               description,
               categories,
               tags,
               videoUrl,
+              thumbnail: image?.id,
               publicId: publicIds[index],
-              artist: { connect: { id: artistId } },
-              user: { connect: { id: userId } },
+              artist: { connect: { id: artist.id } },
+              user: { connect: { id: user.id } },
             },
-            include: { artist: true },
+            include: { artist: true, thumbnail: true },
           });
         }),
       );
@@ -177,37 +432,18 @@ export class TrackService {
     }
   }
 
-  public async findAllAudios(): Promise<any> {
-    try {
-      //const user = await this.usersService.getUserById(userId);
-
-      const audios = await this.prismaService.track.findMany({
-        // where: { authorId: user.id },
-        include: {
-          artist: { include: { image: true } },
-          user: { include: { image: true } },
-          //comments: true,
-          likes: true,
-        },
-        orderBy: {
-          createdAt: 'desc',
-        },
-      });
-
-      return {
-        status: 'Success',
-        message: 'tracks retrieved successfully',
-        data: audios,
-      };
-    } catch (error) {
-      if (error instanceof Prisma.PrismaClientValidationError) {
-        throw new HttpException(
-          'An error occurred while fetching tracks',
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-      throw error;
-    }
+  // Helper function to create thumbnail in the database
+  private async createThumbnail(thumbnailData: {
+    publicId: string;
+    url: string;
+  }) {
+    const thumbnail = await this.prismaService.image.create({
+      data: {
+        publicId: thumbnailData.publicId,
+        url: thumbnailData.url,
+      },
+    });
+    return thumbnail.id;
   }
 
   public async findAllVideos(): Promise<any> {
@@ -288,48 +524,6 @@ export class TrackService {
     }
   }
 
-  public async findAudio(id: number): Promise<any> {
-    try {
-      // const user = await this.usersService.getUserById(userId);
-
-      const audio = await this.prismaService.track.findUnique({
-        where: { id },
-        include: {
-          artist: true,
-          user: { include: { image: true } },
-        },
-      });
-
-      if (!audio) {
-        throw new HttpException(
-          `audio with id ${id} not found`,
-          HttpStatus.NOT_FOUND,
-        );
-      }
-
-      await this.prismaService.audioTrackViews.create({
-        data: {
-          user: { connect: { id: audio.user.id } },
-          audio: { connect: { id: id } },
-        },
-      });
-
-      return {
-        status: 'Success',
-        message: 'Audio track retrieved successfully',
-        data: audio,
-      };
-    } catch (error) {
-      if (error instanceof Prisma.PrismaClientValidationError) {
-        throw new HttpException(
-          'An error occurred while fetching audio',
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-      throw error;
-    }
-  }
-
   async commentVideo(userId: number, id: number, comment: string) {
     try {
       const user = await this.usersService.getUserById(userId);
@@ -352,48 +546,6 @@ export class TrackService {
         data: {
           content: comment,
           videoId: video.id,
-          userId: user.id,
-        },
-      });
-
-      return {
-        status: 'Success',
-        message: 'Comment published successfully',
-        data: comments,
-      };
-    } catch (error) {
-      if (error instanceof Prisma.PrismaClientValidationError) {
-        throw new HttpException(
-          'An error occurred while creating comment',
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-      throw error;
-    }
-  }
-
-  async commentAudio(userId: number, id: number, comment: string) {
-    try {
-      const user = await this.usersService.getUserById(userId);
-      if (!comment) {
-        throw new HttpException('Comment is required.', HttpStatus.BAD_REQUEST);
-      }
-
-      const track = await this.prismaService.track.findUnique({
-        where: { id },
-      });
-
-      if (!track) {
-        throw new HttpException(
-          `Track with id ${id} not found`,
-          HttpStatus.NOT_FOUND,
-        );
-      }
-
-      const comments = await this.prismaService.comment.create({
-        data: {
-          content: comment,
-          audioId: track.id,
           userId: user.id,
         },
       });
@@ -467,10 +619,6 @@ export class TrackService {
     }
   }
 
-  update(id: number, updateTrackDto: UpdateTrackDto) {
-    return `This action updates a #${id} track`;
-  }
-
   async removeVid(userId: number, id: number) {
     try {
       const user = await this.usersService.getUserById(userId);
@@ -504,36 +652,117 @@ export class TrackService {
     }
   }
 
-  async removeAudio(userId: number, id: number) {
+  public async updateVideo(
+    userId: number,
+    id: number,
+    updateTrackDto: UpdateTrackDto,
+    videos?: Array<Express.Multer.File>,
+    thumbnail?: Express.Multer.File,
+  ) {
     try {
       const user = await this.usersService.getUserById(userId);
-
-      const audio = await this.prismaService.track.findUnique({
-        where: { id },
-      });
-
-      if (!audio) {
-        throw new HttpException('audio not found', HttpStatus.NOT_FOUND);
+      if (!user) {
+        throw new HttpException('User not found', HttpStatus.NOT_FOUND);
       }
 
-      await this.prismaService.track.delete({
-        where: {
-          id,
-        },
+      const existingVideo = await this.prismaService.video.findUnique({
+        where: { id },
+        include: { thumbnail: true },
+      });
+
+      if (!existingVideo) {
+        throw new HttpException('Video not found', HttpStatus.NOT_FOUND);
+      }
+
+      let newVideoUrl: string | undefined;
+      let newPublicId: string | undefined;
+
+      if (videos && videos.length > 0) {
+        // Delete the existing video if updating with new ones
+        if (existingVideo.publicId) {
+          await this.cloudinaryService.deleteResource(existingVideo.publicId);
+        }
+
+        const uploadedVideos = await Promise.all(
+          videos.map(async (video) => {
+            const result = await this.cloudinaryService.uploadMedia(
+              video,
+              'video',
+            );
+            return {
+              publicId: result.public_id,
+              videoUrl: result.url,
+            };
+          }),
+        );
+
+        newVideoUrl = uploadedVideos[0].videoUrl;
+        newPublicId = uploadedVideos[0].publicId;
+      }
+
+      // Handle thumbnail update
+      let image = existingVideo.thumbnail;
+
+      if (thumbnail) {
+        if (existingVideo.thumbnail) {
+          await this.cloudinaryService.deleteResource(
+            existingVideo.thumbnail.publicId,
+          );
+        }
+
+        const imagesLink = await this.cloudinaryService.uploadImage(thumbnail);
+        if (existingVideo.thumbnail) {
+          image = await this.prismaService.image.update({
+            where: { id: existingVideo.thumbnail.id },
+            data: {
+              publicId: imagesLink.public_id,
+              url: imagesLink.url,
+            },
+          });
+        } else {
+          image = await this.prismaService.image.create({
+            data: {
+              publicId: imagesLink.public_id,
+              url: imagesLink.url,
+            },
+          });
+        }
+      }
+
+      // Update data object with correct field names
+      const updateData = {
+        ...updateTrackDto,
+        videoUrl: newVideoUrl,
+        publicId: newPublicId,
+        imageId: image?.id,
+      };
+
+      const updatedVideo = await this.prismaService.video.update({
+        where: { id },
+        data: updateData,
+        include: { thumbnail: true },
       });
 
       return {
         status: 'Success',
-        message: 'audio deleted successfully',
+        message: 'Video updated successfully',
+        data: updatedVideo,
       };
     } catch (error) {
-      if (error instanceof Prisma.PrismaClientValidationError) {
+      this.logger.error(error);
+      if (error instanceof HttpException) {
+        throw error;
+      } else if (error instanceof Prisma.PrismaClientValidationError) {
         throw new HttpException(
-          'An error occurred while deleting audio',
+          'Validation error occurred while updating video',
           HttpStatus.BAD_REQUEST,
         );
+      } else {
+        throw new HttpException(
+          'An error occurred while updating video',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
       }
-      throw error;
     }
   }
 }

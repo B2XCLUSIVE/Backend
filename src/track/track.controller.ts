@@ -60,7 +60,7 @@ export class TrackController {
           new MaxFileSizeValidator({ maxSize: 20 * 1024 * 1024 }),
           //new FileTypeValidator({ fileType: 'image/jpeg' }),
         ],
-        fileIsRequired: false,
+        fileIsRequired: true,
       }),
     )
     audios: Array<Express.Multer.File>,
@@ -76,7 +76,7 @@ export class TrackController {
   }
 
   /************************ GET VIDEOS *****************************/
-  // @UseGuards(JwtGuard)
+
   @Get('videos')
   findAllVideos() {
     return this.trackService.findAllVideos();
@@ -104,10 +104,26 @@ export class TrackController {
   }
 
   /************************ UPDATE AUDIO *****************************/
+
   @UseGuards(JwtGuard)
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateTrackDto: UpdateTrackDto) {
-    return this.trackService.update(+id, updateTrackDto);
+  @Patch('audio/update/:id')
+  @UseInterceptors(FilesInterceptor('audios'))
+  updateAudio(
+    @CurrentUser() user: User,
+    @Body() updateTrackDto: UpdateTrackDto,
+    @Param('id') id: string,
+    @UploadedFiles(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 20 * 1024 * 1024 }),
+          //new FileTypeValidator({ fileType: 'image/jpeg' }),
+        ],
+        fileIsRequired: false,
+      }),
+    )
+    audios: Array<Express.Multer.File>,
+  ) {
+    return this.trackService.updateAudio(user.id, +id, updateTrackDto, audios);
   }
 
   /************************ DELETE AUDIO *****************************/
@@ -147,5 +163,27 @@ export class TrackController {
     comment: string,
   ) {
     return this.trackService.commentAudio(user.id, audioId, comment);
+  }
+
+  /************************ UPDATE VIDEO *****************************/
+  @UseGuards(JwtGuard)
+  @Patch('video/update/:id')
+  @UseInterceptors(FilesInterceptor('videos'))
+  updateVideo(
+    @CurrentUser() user: User,
+    @Body() updateTrackDto: UpdateTrackDto,
+    @Param('id') id: string,
+    @UploadedFiles(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 20 * 1024 * 1024 }),
+          //new FileTypeValidator({ fileType: 'image/jpeg' }),
+        ],
+        fileIsRequired: false,
+      }),
+    )
+    videos: Array<Express.Multer.File>,
+  ) {
+    return this.trackService.updateVideo(user.id, +id, updateTrackDto, videos);
   }
 }
