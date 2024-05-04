@@ -84,15 +84,14 @@ export class EventService {
     }
   }
 
-  public async findAll(userId: number): Promise<any> {
+  public async findAll(): Promise<any> {
     try {
-      const user = await this.usersService.getUserById(userId);
-
       const post = await this.prismaService.event.findMany({
-        where: { userId: user.id },
         include: {
           image: true,
           user: { include: { image: true } },
+          comment: true,
+          likes: true,
         },
         orderBy: {
           createdAt: 'desc',
@@ -115,12 +114,10 @@ export class EventService {
     }
   }
 
-  public async findOne(userId: number, id: number): Promise<any> {
+  public async findOne(id: number): Promise<any> {
     try {
-      const user = await this.usersService.getUserById(userId);
-
       const event = await this.prismaService.event.findUnique({
-        where: { id, userId: user.id },
+        where: { id },
         include: {
           image: true,
           user: { include: { image: true } },

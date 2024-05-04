@@ -47,17 +47,15 @@ export class EventController {
   }
 
   /************************ GET EVENTS *****************************/
-  @UseGuards(JwtGuard)
   @Get('events')
-  findAll(@CurrentUser() user: User) {
-    return this.eventService.findAll(user.id);
+  findAll() {
+    return this.eventService.findAll();
   }
 
   /************************ GET EVENT BY ID *****************************/
-  @UseGuards(JwtGuard)
   @Get(':id')
-  findOne(@CurrentUser() user: User, @Param('id') id: string) {
-    return this.eventService.findOne(user.id, +id);
+  findOne(@Param('id') id: string) {
+    return this.eventService.findOne(+id);
   }
 
   /************************ UPDATE ARTIST *****************************/
