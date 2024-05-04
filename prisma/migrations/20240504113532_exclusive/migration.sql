@@ -1,130 +1,34 @@
-/*
-  Warnings:
+-- CreateTable
+CREATE TABLE "User" (
+    "id" SERIAL NOT NULL,
+    "userName" TEXT,
+    "role" TEXT DEFAULT 'user',
+    "email" TEXT,
+    "password" TEXT,
+    "bio" TEXT,
+    "provider" TEXT DEFAULT 'b2Xclusive',
+    "socials" JSONB,
+    "passwordReset" BOOLEAN DEFAULT false,
+    "otp" TEXT,
+    "otpExpiryTime" TIMESTAMP(3),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "imageId" INTEGER,
 
-  - You are about to drop the column `addressId` on the `Image` table. All the data in the column will be lost.
-  - You are about to drop the column `addressVerificationId` on the `Image` table. All the data in the column will be lost.
-  - You are about to drop the column `personalInfoId` on the `Image` table. All the data in the column will be lost.
-  - You are about to drop the column `userId` on the `Image` table. All the data in the column will be lost.
-  - You are about to drop the column `verificationId` on the `Image` table. All the data in the column will be lost.
-  - You are about to drop the column `firstName` on the `User` table. All the data in the column will be lost.
-  - You are about to drop the column `lastName` on the `User` table. All the data in the column will be lost.
-  - You are about to drop the column `phoneNumber` on the `User` table. All the data in the column will be lost.
-  - You are about to drop the column `rating` on the `User` table. All the data in the column will be lost.
-  - You are about to drop the column `type` on the `User` table. All the data in the column will be lost.
-  - You are about to drop the `Address` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `AddressVerification` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `IDverification` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `PaymentDetails` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `PaymentSummary` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `PersonalInfo` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `Transaction` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `Wallet` table. If the table is not empty, all the data it contains will be lost.
-  - A unique constraint covering the columns `[imageId]` on the table `User` will be added. If there are existing duplicate values, this will fail.
+    CONSTRAINT "User_pkey" PRIMARY KEY ("id")
+);
 
-*/
--- DropForeignKey
-ALTER TABLE "Address" DROP CONSTRAINT "Address_userId_fkey";
+-- CreateTable
+CREATE TABLE "Image" (
+    "id" SERIAL NOT NULL,
+    "publicId" TEXT NOT NULL,
+    "url" TEXT NOT NULL,
+    "format" TEXT,
+    "version" TEXT,
+    "placeholder" TEXT,
 
--- DropForeignKey
-ALTER TABLE "AddressVerification" DROP CONSTRAINT "AddressVerification_userId_fkey";
-
--- DropForeignKey
-ALTER TABLE "IDverification" DROP CONSTRAINT "IDverification_userId_fkey";
-
--- DropForeignKey
-ALTER TABLE "Image" DROP CONSTRAINT "Image_addressId_fkey";
-
--- DropForeignKey
-ALTER TABLE "Image" DROP CONSTRAINT "Image_addressVerificationId_fkey";
-
--- DropForeignKey
-ALTER TABLE "Image" DROP CONSTRAINT "Image_personalInfoId_fkey";
-
--- DropForeignKey
-ALTER TABLE "Image" DROP CONSTRAINT "Image_userId_fkey";
-
--- DropForeignKey
-ALTER TABLE "Image" DROP CONSTRAINT "Image_verificationId_fkey";
-
--- DropForeignKey
-ALTER TABLE "PersonalInfo" DROP CONSTRAINT "PersonalInfo_userId_fkey";
-
--- DropForeignKey
-ALTER TABLE "Transaction" DROP CONSTRAINT "Transaction_recieverWalletId_fkey";
-
--- DropForeignKey
-ALTER TABLE "Transaction" DROP CONSTRAINT "Transaction_senderWalletId_fkey";
-
--- DropForeignKey
-ALTER TABLE "Transaction" DROP CONSTRAINT "Transaction_userId_fkey";
-
--- DropForeignKey
-ALTER TABLE "Wallet" DROP CONSTRAINT "Wallet_userId_fkey";
-
--- DropIndex
-DROP INDEX "Image_addressId_key";
-
--- DropIndex
-DROP INDEX "Image_addressVerificationId_key";
-
--- DropIndex
-DROP INDEX "Image_personalInfoId_key";
-
--- DropIndex
-DROP INDEX "Image_userId_key";
-
--- DropIndex
-DROP INDEX "Image_verificationId_key";
-
--- AlterTable
-ALTER TABLE "Image" DROP COLUMN "addressId",
-DROP COLUMN "addressVerificationId",
-DROP COLUMN "personalInfoId",
-DROP COLUMN "userId",
-DROP COLUMN "verificationId";
-
--- AlterTable
-ALTER TABLE "User" DROP COLUMN "firstName",
-DROP COLUMN "lastName",
-DROP COLUMN "phoneNumber",
-DROP COLUMN "rating",
-DROP COLUMN "type",
-ADD COLUMN     "bio" TEXT,
-ADD COLUMN     "imageId" INTEGER,
-ADD COLUMN     "provider" TEXT DEFAULT 'b2Xclusive',
-ADD COLUMN     "role" TEXT DEFAULT 'user',
-ADD COLUMN     "socials" JSONB,
-ADD COLUMN     "userName" TEXT;
-
--- DropTable
-DROP TABLE "Address";
-
--- DropTable
-DROP TABLE "AddressVerification";
-
--- DropTable
-DROP TABLE "IDverification";
-
--- DropTable
-DROP TABLE "PaymentDetails";
-
--- DropTable
-DROP TABLE "PaymentSummary";
-
--- DropTable
-DROP TABLE "PersonalInfo";
-
--- DropTable
-DROP TABLE "Transaction";
-
--- DropTable
-DROP TABLE "Wallet";
-
--- DropEnum
-DROP TYPE "IDType";
-
--- DropEnum
-DROP TYPE "Type";
+    CONSTRAINT "Image_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
 CREATE TABLE "Artist" (
@@ -309,6 +213,15 @@ CREATE TABLE "_EventToImage" (
 );
 
 -- CreateIndex
+CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "User_imageId_key" ON "User"("imageId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Image_publicId_key" ON "Image"("publicId");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "Artist_imageId_key" ON "Artist"("imageId");
 
 -- CreateIndex
@@ -334,9 +247,6 @@ CREATE UNIQUE INDEX "_EventToImage_AB_unique" ON "_EventToImage"("A", "B");
 
 -- CreateIndex
 CREATE INDEX "_EventToImage_B_index" ON "_EventToImage"("B");
-
--- CreateIndex
-CREATE UNIQUE INDEX "User_imageId_key" ON "User"("imageId");
 
 -- AddForeignKey
 ALTER TABLE "User" ADD CONSTRAINT "User_imageId_fkey" FOREIGN KEY ("imageId") REFERENCES "Image"("id") ON DELETE SET NULL ON UPDATE CASCADE;
