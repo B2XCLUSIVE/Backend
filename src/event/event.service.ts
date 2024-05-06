@@ -1,5 +1,5 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
-import { CreateEventDto } from './dto/create-event.dto';
+import { CreateEventDto, OrganisersDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { Prisma } from '@prisma/client';
 import { CloudinaryService, PrismaService } from 'src/common';
@@ -13,57 +13,89 @@ export class EventService {
     private readonly cloudinaryService: CloudinaryService,
     private readonly logger: Logger,
   ) {}
-  async create(
+  public async create(
     userId: number,
     createEventDto: CreateEventDto,
-    files: Array<Express.Multer.File>,
+    files?: Array<Express.Multer.File>,
   ): Promise<any> {
     try {
+      // Validate the user
       const user = await this.usersService.getUserById(userId);
-
-      let imagesLinks = null;
-
-      if (files) {
-        imagesLinks = await this.cloudinaryService
-          .uploadMedias(files, 'image')
-          .catch((error) => {
-            throw new HttpException(error, HttpStatus.BAD_REQUEST);
-          });
+      if (!user) {
+        throw new HttpException('User not found', HttpStatus.NOT_FOUND);
       }
 
-      let createdImages;
-      if (files) {
+      const organiserIds = createEventDto.organisersId.map((id) =>
+        parseInt(id.trim(), 10),
+      );
+      // Get the organizers if their IDs are provided
+      let organisers = [];
+      if (createEventDto.organisersId) {
+        organisers = await this.prismaService.organiser.findMany({
+          where: {
+            id: { in: organiserIds },
+          },
+        });
+
+        // Check for missing organisers
+        const notFoundOrganisers = organiserIds.filter(
+          (id) => !organisers.some((o) => o.id === id),
+        );
+        console.log(notFoundOrganisers);
+        if (notFoundOrganisers.length > 0) {
+          const errorMessage = `Organisers not found: ${notFoundOrganisers.join(
+            ', ',
+          )}`;
+          throw new HttpException(errorMessage, HttpStatus.NOT_FOUND);
+        }
+      }
+
+      // Handle Cloudinary image uploads
+      let imagesLinks = [];
+      if (files && files.length > 0) {
+        imagesLinks = await this.cloudinaryService.uploadMedias(files, 'image');
+      }
+
+      let createdImages = [];
+      if (imagesLinks.length > 0) {
         createdImages = await Promise.all(
-          imagesLinks?.map(async (file) => {
+          imagesLinks.map(async (file) => {
             return await this.prismaService.image.create({
               data: {
-                publicId: file?.public_id,
-                url: file?.url,
+                publicId: file.public_id,
+                url: file.url,
               },
             });
-          }) || [],
+          }),
         );
       }
+
+      // Create the event
       const event = await this.prismaService.event.create({
         data: {
           title: createEventDto.title,
+          subTitle: createEventDto.subTitle,
           description: createEventDto.description,
           location: createEventDto.location,
           date: createEventDto.date,
           user: { connect: { id: user.id } },
           image: {
-            connect: createdImages?.length
-              ? createdImages?.map((image) => ({
-                  id: image?.id,
-                }))
-              : [],
+            connect: createdImages.map((image) => ({
+              id: image.id,
+            })),
+          },
+          organisers: {
+            connect: organisers.map((organiser) => ({
+              id: organiser.id,
+            })),
           },
         },
+        include: { image: true, organisers: true },
       });
 
       return {
         status: true,
-        message: 'Successfully created post',
+        message: 'Successfully created event',
         data: event,
       };
     } catch (error) {
@@ -84,13 +116,72 @@ export class EventService {
     }
   }
 
+  async organiser(
+    userId: number,
+    organisersDto: OrganisersDto,
+    file?: Express.Multer.File,
+  ): Promise<any> {
+    try {
+      const user = await this.usersService.getUserById(userId);
+      const { name, bio } = organisersDto;
+
+      let image = null;
+      if (file) {
+        const imagesLink = await this.cloudinaryService
+          .uploadImage(file)
+          .catch((error) => {
+            throw new HttpException(error, HttpStatus.BAD_REQUEST);
+          });
+
+        image = await this.prismaService.image.create({
+          data: {
+            publicId: imagesLink.public_id,
+            url: imagesLink.url,
+          },
+        });
+      }
+
+      const organiser = await this.prismaService.organiser.create({
+        data: {
+          name,
+          bio,
+          imageId: image?.id,
+          userId: user.id,
+        },
+        include: { user: true, image: true },
+      });
+
+      return {
+        status: true,
+        message: 'Successfully created organiser',
+        data: organiser,
+      };
+    } catch (error) {
+      this.logger.error(error);
+      if (error instanceof HttpException) {
+        throw error;
+      } else if (error instanceof Prisma.PrismaClientValidationError) {
+        throw new HttpException(
+          'Validation error occurred while creating organiser',
+          HttpStatus.BAD_REQUEST,
+        );
+      } else {
+        throw new HttpException(
+          'An error occurred while creating organiser',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+    }
+  }
+
   public async findAll(): Promise<any> {
     try {
       const post = await this.prismaService.event.findMany({
         include: {
           image: true,
+          organisers: true,
           user: { include: { image: true } },
-          comment: true,
+          comments: true,
           likes: true,
         },
         orderBy: {
@@ -120,6 +211,7 @@ export class EventService {
         where: { id },
         include: {
           image: true,
+          organisers: true,
           user: { include: { image: true } },
         },
       });

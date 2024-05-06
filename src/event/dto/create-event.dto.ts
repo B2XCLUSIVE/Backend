@@ -2,6 +2,7 @@ import {
   ArrayNotEmpty,
   IsArray,
   IsDate,
+  IsInt,
   IsNotEmpty,
   IsOptional,
   IsString,
@@ -12,6 +13,16 @@ export class CreateEventDto {
   @IsString()
   @IsNotEmpty()
   title: string;
+
+  @IsOptional()
+  @IsArray()
+  @ArrayNotEmpty()
+  @IsString({ each: true })
+  organisersId?: string[];
+
+  @IsString()
+  @IsOptional()
+  subTitle?: string;
 
   @IsString()
   @IsNotEmpty()
@@ -24,20 +35,14 @@ export class CreateEventDto {
   @IsString()
   @IsNotEmpty()
   location: string;
-
-  @IsOptional()
-  @IsArray()
-  @ArrayNotEmpty()
-  @ValidateNested({ each: true })
-  organisers?: organisers[];
 }
 
-class organisers {
+export class OrganisersDto {
   @IsNotEmpty()
   @IsString()
   name: string;
 
   @IsOptional()
   @IsString()
-  description?: string;
+  bio?: string;
 }

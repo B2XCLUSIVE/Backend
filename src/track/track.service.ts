@@ -20,7 +20,8 @@ export class TrackService {
     audios: Array<Express.Multer.File>,
   ): Promise<any> {
     try {
-      const { title, description, duration, artistId } = createTrackDto;
+      const { title, description, duration, artistId, subTitle } =
+        createTrackDto;
       const user = await this.usersService.getUserById(userId);
       const artist = await this.prismaService.artist.findUnique({
         where: { id: artistId },
@@ -63,6 +64,7 @@ export class TrackService {
           return await this.prismaService.track.create({
             data: {
               title: `${title}`,
+              subTitle,
               duration,
               description,
               audioUrl,
@@ -339,8 +341,15 @@ export class TrackService {
     thumbnail?: Express.Multer.File,
   ): Promise<any> {
     try {
-      const { title, description, duration, artistId, categories, tags } =
-        createTrackDto;
+      const {
+        title,
+        description,
+        duration,
+        artistId,
+        categories,
+        tags,
+        subTitle,
+      } = createTrackDto;
       const user = await this.usersService.getUserById(userId);
       const artist = await this.prismaService.artist.findUnique({
         where: { id: artistId },
@@ -365,6 +374,7 @@ export class TrackService {
       let publicIds: string[] = [];
 
       if (videos && videos.length > 0) {
+        console.log('Yes video');
         const uploadedAudios = await Promise.all(
           videos.map(async (video) => {
             const result = await this.cloudinaryService.uploadMedia(
@@ -380,6 +390,7 @@ export class TrackService {
 
       let image = null;
       if (thumbnail) {
+        console.log('Yes Thubnail');
         const imagesLink = await this.cloudinaryService
           .uploadImage(thumbnail)
           .catch((error) => {
@@ -398,6 +409,7 @@ export class TrackService {
           return await this.prismaService.video.create({
             data: {
               title: `${title}`,
+              subTitle,
               duration,
               description,
               categories,

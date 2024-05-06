@@ -12,38 +12,64 @@ import {
   MaxFileSizeValidator,
   ParseFilePipe,
   UploadedFiles,
+  UploadedFile,
 } from '@nestjs/common';
 import { TrackService } from './track.service';
 import { CreateTrackDto } from './dto/create-track.dto';
 import { UpdateTrackDto } from './dto/update-track.dto';
 import { CurrentUser, JwtGuard } from 'src/common';
 import { User } from '@prisma/client';
-import { FilesInterceptor } from '@nestjs/platform-express';
+import {
+  FileFieldsInterceptor,
+  FileInterceptor,
+  FilesInterceptor,
+} from '@nestjs/platform-express';
 
 @Controller('track')
 export class TrackController {
   constructor(private readonly trackService: TrackService) {}
 
-  /************************ CREATE AUDIO *****************************/
+  uploadFile(
+    @UploadedFiles()
+    files: {
+      avatar?: Express.Multer.File[];
+      background?: Express.Multer.File[];
+    },
+  ) {
+    console.log(files);
+  }
+
+  /************************ CREATE VIDEO *****************************/
   @UseGuards(JwtGuard)
   // @Roles('ADMIN', 'EMPLOYEE')
   @Put('createVideo')
-  @UseInterceptors(FilesInterceptor('videos'))
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      { name: 'videos', maxCount: 1 },
+      { name: 'thumbnail', maxCount: 1 },
+    ]),
+  )
   createVideo(
     @CurrentUser() user: User,
     @Body() createTrackDto: CreateTrackDto,
     @UploadedFiles(
       new ParseFilePipe({
-        validators: [
-          new MaxFileSizeValidator({ maxSize: 20 * 1024 * 1024 }),
-          //new FileTypeValidator({ fileType: 'image/jpeg' }),
-        ],
+        //validators: [new MaxFileSizeValidator({ maxSize: 20 * 1024 * 1024 })],
         fileIsRequired: true,
       }),
     )
-    videos: Array<Express.Multer.File>,
+    files: {
+      videos?: Express.Multer.File[];
+      thumbnail?: Express.Multer.File;
+    },
   ) {
-    return this.trackService.createVideo(user.id, createTrackDto, videos);
+    const { videos, thumbnail } = files;
+    return this.trackService.createVideo(
+      user.id,
+      createTrackDto,
+      videos,
+      thumbnail,
+    );
   }
 
   /************************ CREATE AUDIO *****************************/
