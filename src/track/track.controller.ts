@@ -44,7 +44,7 @@ export class TrackController {
     @Body() createTrackDto: CreateTrackDto,
     @UploadedFiles(
       new ParseFilePipe({
-        validators: [new MaxFileSizeValidator({ maxSize: 20 * 1024 * 1024 })],
+        //validators: [new MaxFileSizeValidator({ maxSize: 20 * 1024 * 1024 })],
         fileIsRequired: true,
       }),
     )
