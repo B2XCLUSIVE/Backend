@@ -44,7 +44,7 @@ export class TrackController {
     @Body() createTrackDto: CreateTrackDto,
     @UploadedFiles(
       new ParseFilePipe({
-        // validators: [new MaxFileSizeValidator({ maxSize: 20 * 1024 * 1024 })],
+        validators: [new MaxFileSizeValidator({ maxSize: 20 * 1024 * 1024 })],
         fileIsRequired: true,
       }),
     )
@@ -54,7 +54,6 @@ export class TrackController {
     },
   ) {
     const { videos, thumbnail } = files;
-    // console.log(thumbnail);
 
     return this.trackService.createVideo(
       user.id,
@@ -68,22 +67,37 @@ export class TrackController {
   @UseGuards(JwtGuard)
   // @Roles('ADMIN', 'EMPLOYEE')
   @Put('createAudio')
-  @UseInterceptors(FilesInterceptor('audios'))
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      { name: 'audios', maxCount: 1 },
+      { name: 'thumbnail', maxCount: 1 },
+    ]),
+  )
   createAudio(
     @CurrentUser() user: User,
     @Body() createTrackDto: CreateTrackDto,
     @UploadedFiles(
       new ParseFilePipe({
         validators: [
-          new MaxFileSizeValidator({ maxSize: 20 * 1024 * 1024 }),
+          //new MaxFileSizeValidator({ maxSize: 20 * 1024 * 1024 }),
           //new FileTypeValidator({ fileType: 'image/jpeg' }),
         ],
         fileIsRequired: true,
       }),
     )
-    audios: Array<Express.Multer.File>,
+    files: {
+      audios?: Express.Multer.File[];
+      thumbnail?: Express.Multer.File;
+    },
   ) {
-    return this.trackService.createAudio(user.id, createTrackDto, audios);
+    const { audios, thumbnail } = files;
+
+    return this.trackService.createAudio(
+      user.id,
+      createTrackDto,
+      audios,
+      thumbnail[0],
+    );
   }
 
   /************************ GET AUDIOS *****************************/

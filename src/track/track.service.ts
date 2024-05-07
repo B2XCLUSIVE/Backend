@@ -89,7 +89,7 @@ export class TrackService {
               artist: { connect: { id: artist.id } },
               user: { connect: { id: user.id } },
             },
-            include: { artist: true },
+            include: { artist: true, image: true },
           });
         }),
       );
@@ -121,7 +121,7 @@ export class TrackService {
         include: {
           artist: { include: { image: true } },
           user: { include: { image: true } },
-          //comments: true,
+          image: true,
           likes: true,
         },
         orderBy: {
@@ -152,6 +152,7 @@ export class TrackService {
       const audio = await this.prismaService.track.findUnique({
         where: { id },
         include: {
+          image: true,
           artist: true,
           user: { include: { image: true } },
         },
