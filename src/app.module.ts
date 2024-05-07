@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, RequestMethod } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
@@ -6,6 +6,7 @@ import {
   AllExceptionsFilter,
   CloudinaryModule,
   ConfigModule,
+  RequestSizeMiddleware,
   UserInterceptor,
 } from './common';
 import { APP_INTERCEPTOR } from '@nestjs/core';
@@ -16,7 +17,16 @@ import { PostModule } from './post/post.module';
 import { TrackModule } from './track/track.module';
 
 @Module({
-  imports: [ConfigModule, AuthModule, CloudinaryModule, PaystackModule, ArtistModule, EventModule, PostModule, TrackModule],
+  imports: [
+    ConfigModule,
+    AuthModule,
+    CloudinaryModule,
+    PaystackModule,
+    ArtistModule,
+    EventModule,
+    PostModule,
+    TrackModule,
+  ],
   controllers: [AppController],
   providers: [
     AppService,
@@ -30,4 +40,10 @@ import { TrackModule } from './track/track.module';
     },
   ],
 })
-export class AppModule {}
+export class AppModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(RequestSizeMiddleware)
+      .forRoutes({ path: '*', method: RequestMethod.ALL });
+  }
+}

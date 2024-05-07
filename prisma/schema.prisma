@@ -120,10 +120,10 @@ model Track {
   likes    Like[]
   views    AudioTrackViews[]
 
-  thumbnail Image?  @relation(fields: [imageId], references: [id])
-  album     Album?  @relation(fields: [albumId], references: [id])
-  artist    Artist? @relation(fields: [artistId], references: [id], onDelete: Cascade)
-  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  image  Image?  @relation(fields: [imageId], references: [id])
+  album  Album?  @relation(fields: [albumId], references: [id])
+  artist Artist? @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Event {

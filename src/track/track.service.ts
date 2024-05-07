@@ -18,6 +18,7 @@ export class TrackService {
     userId: number,
     createTrackDto: CreateTrackDto,
     audios: Array<Express.Multer.File>,
+    thumbnail?: Express.Multer.File,
   ): Promise<any> {
     try {
       const { title, description, duration, artistId, subTitle } =
@@ -59,6 +60,21 @@ export class TrackService {
         audioUrls = uploadedAudios;
       }
 
+      let image = null;
+      if (thumbnail) {
+        const imagesLink = await this.cloudinaryService
+          .uploadImage(thumbnail)
+          .catch((error) => {
+            throw new HttpException(error, HttpStatus.BAD_REQUEST);
+          });
+        image = await this.prismaService.image.create({
+          data: {
+            publicId: imagesLink.public_id,
+            url: imagesLink.url,
+          },
+        });
+      }
+
       const tracks = await Promise.all(
         audioUrls.map(async (audioUrl, index) => {
           return await this.prismaService.track.create({
@@ -68,6 +84,7 @@ export class TrackService {
               duration,
               description,
               audioUrl,
+              image: { connect: { id: image.id } },
               publicId: publicIds[index],
               artist: { connect: { id: artist.id } },
               user: { connect: { id: user.id } },
@@ -390,7 +407,6 @@ export class TrackService {
 
       let image = null;
       if (thumbnail) {
-        console.log('Yes Thubnail');
         const imagesLink = await this.cloudinaryService
           .uploadImage(thumbnail)
           .catch((error) => {
@@ -415,7 +431,7 @@ export class TrackService {
               categories,
               tags,
               videoUrl,
-              thumbnail: image?.id,
+              thumbnail: { connect: { id: image.id } },
               publicId: publicIds[index],
               artist: { connect: { id: artist.id } },
               user: { connect: { id: user.id } },

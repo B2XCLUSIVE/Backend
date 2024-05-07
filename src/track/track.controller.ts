@@ -29,16 +29,6 @@ import {
 export class TrackController {
   constructor(private readonly trackService: TrackService) {}
 
-  uploadFile(
-    @UploadedFiles()
-    files: {
-      avatar?: Express.Multer.File[];
-      background?: Express.Multer.File[];
-    },
-  ) {
-    console.log(files);
-  }
-
   /************************ CREATE VIDEO *****************************/
   @UseGuards(JwtGuard)
   // @Roles('ADMIN', 'EMPLOYEE')
@@ -54,7 +44,7 @@ export class TrackController {
     @Body() createTrackDto: CreateTrackDto,
     @UploadedFiles(
       new ParseFilePipe({
-        //validators: [new MaxFileSizeValidator({ maxSize: 20 * 1024 * 1024 })],
+        // validators: [new MaxFileSizeValidator({ maxSize: 20 * 1024 * 1024 })],
         fileIsRequired: true,
       }),
     )
@@ -64,11 +54,13 @@ export class TrackController {
     },
   ) {
     const { videos, thumbnail } = files;
+    // console.log(thumbnail);
+
     return this.trackService.createVideo(
       user.id,
       createTrackDto,
       videos,
-      thumbnail,
+      thumbnail[0],
     );
   }
 

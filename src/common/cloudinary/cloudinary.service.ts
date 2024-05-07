@@ -56,7 +56,6 @@ export class CloudinaryService {
     resourceType: 'image' | 'video' | 'auto',
   ): Promise<UploadApiResponse | UploadApiErrorResponse> {
     return new Promise((resolve, reject) => {
-      console.log(resourceType);
       const uploadOptions: any = { folder: `b2xclusive/${resourceType}` };
 
       if (resourceType === 'image' && !file.mimetype.startsWith('image')) {

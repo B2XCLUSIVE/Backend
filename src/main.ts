@@ -6,6 +6,7 @@ import express from 'express';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
   app.enableCors({
     origin: ['http://localhost:3000', 'https://b2exclusive.vercel.app'],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,PATCH',
@@ -13,7 +14,6 @@ async function bootstrap() {
     credentials: true,
   });
 
-  //app.use(express.urlencoded({ extended: true, limit: '50mb' }));
   const configService = app.get(ConfigService);
   app.setGlobalPrefix('api/v1/');
   app.useGlobalPipes(
