@@ -41,9 +41,9 @@ import { TrackModule } from './track/track.module';
   ],
 })
 export class AppModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply(RequestSizeMiddleware)
-      .forRoutes({ path: '*', method: RequestMethod.ALL });
-  }
+  // configure(consumer: MiddlewareConsumer) {
+  //   consumer
+  //     .apply(RequestSizeMiddleware)
+  //     .forRoutes({ path: '*', method: RequestMethod.ALL });
+  // }
 }
