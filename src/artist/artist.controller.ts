@@ -64,10 +64,11 @@ export class ArtistController {
   /************************ UPDATE ARTIST *****************************/
   @UseGuards(JwtGuard)
   @Patch('update/:id')
+  @UseInterceptors(FileInterceptor('file'))
   update(
     @CurrentUser() user: User,
     @Param('id') id: string,
-    @Body() updateArtistDto: UpdateArtistDto,
+    @Body() updateArtistDto: CreateArtistDto,
     @UploadedFile(
       new ParseFilePipeBuilder()
         .addMaxSizeValidator({
@@ -80,7 +81,6 @@ export class ArtistController {
     )
     file: Express.Multer.File,
   ) {
-    console.log(updateArtistDto);
     return this.artistService.update(user.id, +id, updateArtistDto, file);
   }
 
