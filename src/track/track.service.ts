@@ -482,6 +482,7 @@ export class TrackService {
       const videos = await this.prismaService.video.findMany({
         // where: { authorId: user.id },
         include: {
+          thumbnail: true,
           artist: { include: { image: true } },
           user: { include: { image: true } },
           comments: true,
@@ -516,6 +517,7 @@ export class TrackService {
       const video = await this.prismaService.video.findUnique({
         where: { id },
         include: {
+          thumbnail: true,
           artist: true,
           comments: true,
           likes: true,

@@ -155,7 +155,6 @@ export class ArtistService {
     try {
       const user = await this.usersService.getUserById(userId);
 
-      console.log(updateArtistDto);
       if (!Object.keys(updateArtistDto).length) {
         return {
           status: 'No Updates',

@@ -80,6 +80,7 @@ export class ArtistController {
     )
     file: Express.Multer.File,
   ) {
+    console.log(updateArtistDto);
     return this.artistService.update(user.id, +id, updateArtistDto, file);
   }
 

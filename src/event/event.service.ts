@@ -205,6 +205,35 @@ export class EventService {
     }
   }
 
+  public async findAllOrganisers(): Promise<any> {
+    try {
+      const organisers = await this.prismaService.organiser.findMany({
+        include: {
+          image: true,
+          user: { include: { image: true } },
+          events: true,
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+      });
+
+      return {
+        status: 'Success',
+        message: 'organisers retrieved successfully',
+        data: organisers,
+      };
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientValidationError) {
+        throw new HttpException(
+          'An error occurred while fetching organisers',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      throw error;
+    }
+  }
+
   public async findOne(id: number): Promise<any> {
     try {
       const event = await this.prismaService.event.findUnique({

@@ -78,6 +78,12 @@ export class EventController {
     return this.eventService.findAll();
   }
 
+  /************************ GET ORGANISERS *****************************/
+  @Get('organisers')
+  findAllOrganisers() {
+    return this.eventService.findAllOrganisers();
+  }
+
   /************************ GET EVENT BY ID *****************************/
   @Get(':id')
   findOne(@Param('id') id: string) {
