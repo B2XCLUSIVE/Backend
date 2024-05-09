@@ -19,7 +19,6 @@ export class EventService {
     files?: Array<Express.Multer.File>,
   ): Promise<any> {
     try {
-      // Validate the user
       const user = await this.usersService.getUserById(userId);
       if (!user) {
         throw new HttpException('User not found', HttpStatus.NOT_FOUND);

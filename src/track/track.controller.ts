@@ -139,7 +139,12 @@ export class TrackController {
 
   @UseGuards(JwtGuard)
   @Patch('audio/update/:id')
-  @UseInterceptors(FilesInterceptor('audios'))
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      { name: 'audios', maxCount: 1 },
+      { name: 'thumbnail', maxCount: 1 },
+    ]),
+  )
   updateAudio(
     @CurrentUser() user: User,
     @Body() updateTrackDto: UpdateTrackDto,
@@ -147,15 +152,25 @@ export class TrackController {
     @UploadedFiles(
       new ParseFilePipe({
         validators: [
-          new MaxFileSizeValidator({ maxSize: 20 * 1024 * 1024 }),
+          //new MaxFileSizeValidator({ maxSize: 20 * 1024 * 1024 }),
           //new FileTypeValidator({ fileType: 'image/jpeg' }),
         ],
         fileIsRequired: false,
       }),
     )
-    audios: Array<Express.Multer.File>,
+    files: {
+      audios?: Express.Multer.File[];
+      thumbnail?: Express.Multer.File;
+    },
   ) {
-    return this.trackService.updateAudio(user.id, +id, updateTrackDto, audios);
+    const { audios, thumbnail } = files;
+    return this.trackService.updateAudio(
+      user.id,
+      +id,
+      updateTrackDto,
+      audios,
+      thumbnail,
+    );
   }
 
   /************************ DELETE AUDIO *****************************/
@@ -200,7 +215,12 @@ export class TrackController {
   /************************ UPDATE VIDEO *****************************/
   @UseGuards(JwtGuard)
   @Patch('video/update/:id')
-  @UseInterceptors(FilesInterceptor('videos'))
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      { name: 'videos', maxCount: 1 },
+      { name: 'thumbnail', maxCount: 1 },
+    ]),
+  )
   updateVideo(
     @CurrentUser() user: User,
     @Body() updateTrackDto: UpdateTrackDto,
@@ -208,14 +228,24 @@ export class TrackController {
     @UploadedFiles(
       new ParseFilePipe({
         validators: [
-          new MaxFileSizeValidator({ maxSize: 20 * 1024 * 1024 }),
+          //new MaxFileSizeValidator({ maxSize: 20 * 1024 * 1024 }),
           //new FileTypeValidator({ fileType: 'image/jpeg' }),
         ],
         fileIsRequired: false,
       }),
     )
-    videos: Array<Express.Multer.File>,
+    files: {
+      videos?: Express.Multer.File[];
+      thumbnail?: Express.Multer.File;
+    },
   ) {
-    return this.trackService.updateVideo(user.id, +id, updateTrackDto, videos);
+    const { videos, thumbnail } = files;
+    return this.trackService.updateVideo(
+      user.id,
+      +id,
+      updateTrackDto,
+      videos,
+      thumbnail,
+    );
   }
 }

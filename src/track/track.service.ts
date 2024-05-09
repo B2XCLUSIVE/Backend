@@ -235,6 +235,7 @@ export class TrackService {
     trackId: number,
     updateTrackDto: UpdateTrackDto,
     audios?: Array<Express.Multer.File>,
+    thumbnail?: Express.Multer.File,
   ): Promise<any> {
     try {
       const user = await this.usersService.getUserById(userId);
@@ -245,7 +246,7 @@ export class TrackService {
       // Get the existing track
       const existingTrack = await this.prismaService.track.findUnique({
         where: { id: trackId },
-        include: { artist: true },
+        include: { artist: true, image: true },
       });
 
       if (!existingTrack) {
@@ -280,9 +281,39 @@ export class TrackService {
         publicId = uploadedAudios[0].publicId;
       }
 
-      // Prepare data for update
+      // Handle thumbnail update
+      let image = existingTrack.image;
+
+      if (thumbnail) {
+        if (existingTrack.image) {
+          await this.cloudinaryService.deleteResource(
+            existingTrack.image.publicId,
+          );
+        }
+
+        const imagesLink = await this.cloudinaryService.uploadImage(thumbnail);
+        if (existingTrack.image) {
+          image = await this.prismaService.image.update({
+            where: { id: existingTrack.image.id },
+            data: {
+              publicId: imagesLink.public_id,
+              url: imagesLink.url,
+            },
+          });
+        } else {
+          image = await this.prismaService.image.create({
+            data: {
+              publicId: imagesLink.public_id,
+              url: imagesLink.url,
+            },
+          });
+        }
+      }
+
+      // Update data object with correct field names
       const updateData = {
         ...updateTrackDto,
+        imageId: image?.id,
         audioUrl: audioUrl ?? existingTrack.audioUrl,
         publicId: publicId ?? existingTrack.publicId,
       };
