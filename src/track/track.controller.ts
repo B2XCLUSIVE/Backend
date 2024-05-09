@@ -13,6 +13,7 @@ import {
   ParseFilePipe,
   UploadedFiles,
   UploadedFile,
+  FileTypeValidator,
 } from '@nestjs/common';
 import { TrackService } from './track.service';
 import { CreateTrackDto } from './dto/create-track.dto';
@@ -39,15 +40,10 @@ export class TrackController {
       { name: 'thumbnail', maxCount: 1 },
     ]),
   )
-  createVideo(
+  async createVideo(
     @CurrentUser() user: User,
     @Body() createTrackDto: CreateTrackDto,
-    @UploadedFiles(
-      new ParseFilePipe({
-        //validators: [new MaxFileSizeValidator({ maxSize: 20 * 1024 * 1024 })],
-        fileIsRequired: true,
-      }),
-    )
+    @UploadedFiles()
     files: {
       videos?: Express.Multer.File[];
       thumbnail?: Express.Multer.File;
@@ -55,11 +51,40 @@ export class TrackController {
   ) {
     const { videos, thumbnail } = files;
 
+    // Validating 'videos' file if it exists
+    if (videos && videos.length > 0) {
+      const videoFile = videos[0];
+
+      const videoValidationPipe = new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 15 * 1024 * 1024 }),
+          new FileTypeValidator({ fileType: /video\/.*/ }),
+        ],
+        fileIsRequired: true,
+      });
+
+      await videoValidationPipe.transform(videoFile);
+    }
+
+    if (thumbnail) {
+      const thumbnailFile = thumbnail[0];
+      const thumbnailValidationPipe = new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 5 * 1024 * 1024 }), // 5 MB
+          new FileTypeValidator({
+            fileType: /(image\/jpeg|image\/png|image\/jpg|image\/gif)/,
+          }),
+        ],
+        fileIsRequired: true,
+      });
+      await thumbnailValidationPipe.transform(thumbnailFile);
+    }
+
     return this.trackService.createVideo(
       user.id,
       createTrackDto,
       videos,
-      thumbnail[0],
+      thumbnail ? thumbnail[0] : null,
     );
   }
 
@@ -73,15 +98,11 @@ export class TrackController {
       { name: 'thumbnail', maxCount: 1 },
     ]),
   )
-  createAudio(
+  async createAudio(
     @CurrentUser() user: User,
     @Body() createTrackDto: CreateTrackDto,
     @UploadedFiles(
       new ParseFilePipe({
-        validators: [
-          //new MaxFileSizeValidator({ maxSize: 20 * 1024 * 1024 }),
-          //new FileTypeValidator({ fileType: 'image/jpeg' }),
-        ],
         fileIsRequired: true,
       }),
     )
@@ -92,11 +113,39 @@ export class TrackController {
   ) {
     const { audios, thumbnail } = files;
 
+    if (audios && audios.length > 0) {
+      const videoFile = audios[0];
+
+      const videoValidationPipe = new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 15 * 1024 * 1024 }),
+          new FileTypeValidator({ fileType: /audio\/.*/ }),
+        ],
+        fileIsRequired: true,
+      });
+
+      await videoValidationPipe.transform(videoFile);
+    }
+
+    if (thumbnail) {
+      const thumbnailFile = thumbnail[0];
+      const thumbnailValidationPipe = new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 5 * 1024 * 1024 }), // 5 MB
+          new FileTypeValidator({
+            fileType: /(image\/jpeg|image\/png|image\/jpg|image\/gif)/,
+          }),
+        ],
+        fileIsRequired: false,
+      });
+      await thumbnailValidationPipe.transform(thumbnailFile);
+    }
+
     return this.trackService.createAudio(
       user.id,
       createTrackDto,
       audios,
-      thumbnail[0],
+      thumbnail ? thumbnail[0] : null,
     );
   }
 
@@ -145,16 +194,12 @@ export class TrackController {
       { name: 'thumbnail', maxCount: 1 },
     ]),
   )
-  updateAudio(
+  async updateAudio(
     @CurrentUser() user: User,
     @Body() updateTrackDto: UpdateTrackDto,
     @Param('id') id: string,
     @UploadedFiles(
       new ParseFilePipe({
-        validators: [
-          //new MaxFileSizeValidator({ maxSize: 20 * 1024 * 1024 }),
-          //new FileTypeValidator({ fileType: 'image/jpeg' }),
-        ],
         fileIsRequired: false,
       }),
     )
@@ -165,12 +210,38 @@ export class TrackController {
   ) {
     const { audios, thumbnail } = files;
 
+    if (audios && audios.length > 0) {
+      const videoFile = audios[0];
+
+      const videoValidationPipe = new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 15 * 1024 * 1024 }),
+          new FileTypeValidator({ fileType: /audio\/.*/ }),
+        ],
+      });
+
+      await videoValidationPipe.transform(videoFile);
+    }
+
+    if (thumbnail) {
+      const thumbnailFile = thumbnail[0];
+      const thumbnailValidationPipe = new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 5 * 1024 * 1024 }), // 5 MB
+          new FileTypeValidator({
+            fileType: /(image\/jpeg|image\/png|image\/jpg|image\/gif)/,
+          }),
+        ],
+      });
+      await thumbnailValidationPipe.transform(thumbnailFile);
+    }
+
     return this.trackService.updateAudio(
       user.id,
       +id,
       updateTrackDto,
-      audios,
-      thumbnail[0],
+      audios ? audios : null,
+      thumbnail ? thumbnail[0] : null,
     );
   }
 
@@ -222,16 +293,12 @@ export class TrackController {
       { name: 'thumbnail', maxCount: 1 },
     ]),
   )
-  updateVideo(
+  async updateVideo(
     @CurrentUser() user: User,
     @Body() updateTrackDto: UpdateTrackDto,
     @Param('id') id: string,
     @UploadedFiles(
       new ParseFilePipe({
-        validators: [
-          //new MaxFileSizeValidator({ maxSize: 20 * 1024 * 1024 }),
-          //new FileTypeValidator({ fileType: 'image/jpeg' }),
-        ],
         fileIsRequired: false,
       }),
     )
@@ -241,13 +308,39 @@ export class TrackController {
     },
   ) {
     const { videos, thumbnail } = files;
+    // Validating 'videos' file if it exists
+    if (videos && videos.length > 0) {
+      const videoFile = videos[0];
+
+      const videoValidationPipe = new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 15 * 1024 * 1024 }),
+          new FileTypeValidator({ fileType: /video\/.*/ }),
+        ],
+      });
+
+      await videoValidationPipe.transform(videoFile);
+    }
+
+    if (thumbnail) {
+      const thumbnailFile = thumbnail[0];
+      const thumbnailValidationPipe = new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 5 * 1024 * 1024 }), // 5 MB
+          new FileTypeValidator({
+            fileType: /(image\/jpeg|image\/png|image\/jpg|image\/gif)/,
+          }),
+        ],
+      });
+      await thumbnailValidationPipe.transform(thumbnailFile);
+    }
 
     return this.trackService.updateVideo(
       user.id,
       +id,
       updateTrackDto,
-      videos,
-      thumbnail[0],
+      videos ? videos : null,
+      thumbnail ? thumbnail[0] : null,
     );
   }
 }
