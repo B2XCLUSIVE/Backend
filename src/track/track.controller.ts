@@ -164,12 +164,13 @@ export class TrackController {
     },
   ) {
     const { audios, thumbnail } = files;
+
     return this.trackService.updateAudio(
       user.id,
       +id,
       updateTrackDto,
       audios,
-      thumbnail,
+      thumbnail[0],
     );
   }
 
@@ -240,12 +241,13 @@ export class TrackController {
     },
   ) {
     const { videos, thumbnail } = files;
+
     return this.trackService.updateVideo(
       user.id,
       +id,
       updateTrackDto,
       videos,
-      thumbnail,
+      thumbnail[0],
     );
   }
 }
