@@ -18,9 +18,9 @@ export class CreateTrackDto {
   @IsOptional()
   subTitle?: string;
 
-  @IsInt()
+  @IsString()
   @IsNotEmpty()
-  artistId: number;
+  artistId: string;
 
   @IsString()
   @IsNotEmpty()

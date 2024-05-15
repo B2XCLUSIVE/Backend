@@ -56,7 +56,7 @@ export class UsersController {
   /************************ SINGLE USER *****************************/
   @Get('singleUser/:id')
   @UseGuards(JwtGuard)
-  async getUser(@Param('id') id: number) {
+  async getUser(@Param('id') id: string) {
     return await this.usersService.getUserById(id);
   }
 

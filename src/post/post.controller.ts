@@ -50,7 +50,8 @@ export class PostController {
   /************************ GET POSTS *****************************/
   //@UseGuards(JwtGuard)
   @Get('posts')
-  findAll() { // @CurrentUser() user: User
+  findAll() {
+    // @CurrentUser() user: User
     return this.postService.findAll();
   }
 
@@ -59,7 +60,7 @@ export class PostController {
   @Put('comment/:postId')
   commentPost(
     @CurrentUser() user: User,
-    @Param('postId') postId: number,
+    @Param('postId') postId: string,
     @Body() comment: UpdatePostDto,
   ) {
     return this.postService.commentPost(user.id, postId, comment);
@@ -68,7 +69,7 @@ export class PostController {
   /************************ LIKE POST *****************************/
   @UseGuards(JwtGuard)
   @Put(':postId/like')
-  likeOrUnlikePost(@CurrentUser() user: User, @Param('postId') postId: number) {
+  likeOrUnlikePost(@CurrentUser() user: User, @Param('postId') postId: string) {
     return this.postService.likeOrUnlikePost(postId, user.id);
   }
 
@@ -93,7 +94,7 @@ export class PostController {
   //@UseGuards(JwtGuard)
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.postService.findOne(+id);
+    return this.postService.findOne(id);
   }
 
   /************************ UPDATE post *****************************/
@@ -115,13 +116,13 @@ export class PostController {
     )
     files: Array<Express.Multer.File>,
   ) {
-    return this.postService.update(user.id, +id, updatePostDto, files);
+    return this.postService.update(user.id, id, updatePostDto, files);
   }
 
   /************************ DELETE POST *****************************/
   @UseGuards(JwtGuard)
   @Delete('delete/:id')
   remove(@CurrentUser() user: User, @Param('id') id: string) {
-    return this.postService.remove(user.id, +id);
+    return this.postService.remove(user.id, id);
   }
 }

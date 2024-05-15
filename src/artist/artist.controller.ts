@@ -58,7 +58,7 @@ export class ArtistController {
   //  @UseGuards(JwtGuard)
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.artistService.findOne(+id);
+    return this.artistService.findOne(id);
   }
 
   /************************ UPDATE ARTIST *****************************/
@@ -81,13 +81,13 @@ export class ArtistController {
     )
     file: Express.Multer.File,
   ) {
-    return this.artistService.update(user.id, +id, updateArtistDto, file);
+    return this.artistService.update(user.id, id, updateArtistDto, file);
   }
 
   /************************ DELETE ARTIST *****************************/
   @UseGuards(JwtGuard)
   @Delete('delete/:id')
   remove(@CurrentUser() user: User, @Param('id') id: string) {
-    return this.artistService.remove(user.id, +id);
+    return this.artistService.remove(user.id, id);
   }
 }

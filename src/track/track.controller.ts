@@ -167,14 +167,14 @@ export class TrackController {
   // @UseGuards(JwtGuard)
   @Get('video/:id')
   findVideo(@Param('id') id: string) {
-    return this.trackService.findVideo(+id);
+    return this.trackService.findVideo(id);
   }
 
   /************************ DELETE Video *****************************/
   @UseGuards(JwtGuard)
   @Delete('video/delete/:id')
   removeVid(@CurrentUser() user: User, @Param('id') id: string) {
-    return this.trackService.removeVid(user.id, +id);
+    return this.trackService.removeVid(user.id, id);
   }
 
   /************************ GET AUDIO *****************************/
@@ -337,7 +337,7 @@ export class TrackController {
 
     return this.trackService.updateVideo(
       user.id,
-      +id,
+      id,
       updateTrackDto,
       videos ? videos : null,
       thumbnail ? thumbnail[0] : null,

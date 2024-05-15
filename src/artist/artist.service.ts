@@ -14,12 +14,12 @@ export class ArtistService {
     private readonly logger: Logger,
   ) {}
   public async create(
-    userId: number,
+    userId: string,
     createArtistDto: CreateArtistDto,
     file?: Express.Multer.File,
   ) {
     try {
-      const user = await this.usersService.getUserById(userId);
+      const user = await this.usersService.getUserById(String(userId));
 
       const { name, bio } = createArtistDto;
       const existingArtist = await this.prismaService.artist.findFirst({
@@ -109,12 +109,12 @@ export class ArtistService {
     }
   }
 
-  public async findOne(id: number): Promise<any> {
+  public async findOne(id: string): Promise<any> {
     try {
       //const user = await this.usersService.getUserById(userId);
 
       const artist = await this.prismaService.artist.findUnique({
-        where: { id },
+        where: { id: String(id) },
         include: {
           image: true,
           videos: true,
@@ -147,13 +147,13 @@ export class ArtistService {
   }
 
   public async update(
-    userId: number,
-    id: number,
+    userId: string,
+    id: string,
     updateArtistDto: UpdateArtistDto,
     file?: Express.Multer.File,
   ) {
     try {
-      const user = await this.usersService.getUserById(userId);
+      const user = await this.usersService.getUserById(String(userId));
 
       if (!Object.keys(updateArtistDto).length) {
         return {
@@ -163,7 +163,7 @@ export class ArtistService {
       }
 
       const existingArtist = await this.prismaService.artist.findUnique({
-        where: { id },
+        where: { id: String(id) },
         include: { image: true },
       });
 
@@ -204,7 +204,7 @@ export class ArtistService {
       }
 
       const updatedArtist = await this.prismaService.artist.update({
-        where: { id },
+        where: { id: String(id) },
         data: {
           name: updateArtistDto.name,
           bio: updateArtistDto.bio,
@@ -236,12 +236,12 @@ export class ArtistService {
     }
   }
 
-  async remove(userId: number, id: number) {
+  async remove(userId: string, id: string) {
     try {
-      const user = await this.usersService.getUserById(userId);
+      const user = await this.usersService.getUserById(String(userId));
 
       const artist = await this.prismaService.artist.findUnique({
-        where: { id, userId },
+        where: { id: String(id), userId: String(userId) },
         include: { image: true },
       });
 
@@ -251,7 +251,7 @@ export class ArtistService {
 
       await this.prismaService.artist.delete({
         where: {
-          id,
+          id: String(id),
           userId: user.id,
         },
       });

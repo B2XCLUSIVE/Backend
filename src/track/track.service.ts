@@ -15,7 +15,7 @@ export class TrackService {
   ) {}
 
   async createAudio(
-    userId: number,
+    userId: string,
     createTrackDto: CreateTrackDto,
     audios: Array<Express.Multer.File>,
     thumbnail?: Express.Multer.File,
@@ -23,9 +23,9 @@ export class TrackService {
     try {
       const { title, description, duration, artistId, subTitle } =
         createTrackDto;
-      const user = await this.usersService.getUserById(userId);
+      const user = await this.usersService.getUserById(String(userId));
       const artist = await this.prismaService.artist.findUnique({
-        where: { id: artistId },
+        where: { id: String(artistId) },
       });
 
       if (!artist) {
@@ -33,7 +33,7 @@ export class TrackService {
       }
 
       const audioTitle = await this.prismaService.track.findFirst({
-        where: { title, artistId },
+        where: { title, artistId: String(artistId) },
       });
 
       if (audioTitle) {
@@ -150,7 +150,7 @@ export class TrackService {
       // const user = await this.usersService.getUserById(userId);
 
       const audio = await this.prismaService.track.findUnique({
-        where: { id },
+        where: { id: String(id) },
         include: {
           image: true,
           artist: true,
@@ -168,7 +168,7 @@ export class TrackService {
       await this.prismaService.audioTrackViews.create({
         data: {
           user: { connect: { id: audio.user.id } },
-          audio: { connect: { id: id } },
+          audio: { connect: { id: String(id) } },
         },
       });
 
@@ -188,15 +188,15 @@ export class TrackService {
     }
   }
 
-  async commentAudio(userId: number, id: number, comment: string) {
+  async commentAudio(userId: string, id: number, comment: string) {
     try {
-      const user = await this.usersService.getUserById(userId);
+      const user = await this.usersService.getUserById(String(userId));
       if (!comment) {
         throw new HttpException('Comment is required.', HttpStatus.BAD_REQUEST);
       }
 
       const track = await this.prismaService.track.findUnique({
-        where: { id },
+        where: { id: String(id) },
       });
 
       if (!track) {
@@ -231,21 +231,21 @@ export class TrackService {
   }
 
   public async updateAudio(
-    userId: number,
+    userId: string,
     trackId: number,
     updateTrackDto: UpdateTrackDto,
     audios?: Array<Express.Multer.File>,
     thumbnail?: Express.Multer.File,
   ): Promise<any> {
     try {
-      const user = await this.usersService.getUserById(userId);
+      const user = await this.usersService.getUserById(String(userId));
       if (!user) {
         throw new HttpException('User not found', HttpStatus.NOT_FOUND);
       }
 
       // Get the existing track
       const existingTrack = await this.prismaService.track.findUnique({
-        where: { id: trackId },
+        where: { id: String(trackId) },
         include: { artist: true, image: true },
       });
 
@@ -320,8 +320,9 @@ export class TrackService {
 
       // Update the track in the database
       const updatedTrack = await this.prismaService.track.update({
-        where: { id: trackId },
+        where: { id: String(trackId) },
         data: updateData,
+
         include: { artist: true },
       });
 
@@ -348,12 +349,12 @@ export class TrackService {
     }
   }
 
-  async removeAudio(userId: number, id: number) {
+  async removeAudio(userId: string, id: number) {
     try {
-      const user = await this.usersService.getUserById(userId);
+      const user = await this.usersService.getUserById(String(userId));
 
       const audio = await this.prismaService.track.findUnique({
-        where: { id },
+        where: { id: String(id) },
       });
 
       if (!audio) {
@@ -362,7 +363,7 @@ export class TrackService {
 
       await this.prismaService.track.delete({
         where: {
-          id,
+          id: String(id),
         },
       });
 
@@ -384,7 +385,7 @@ export class TrackService {
   /***************************************  VIDEO STARTS *****************************************/
 
   async createVideo(
-    userId: number,
+    userId: string,
     createTrackDto: CreateTrackDto,
     videos: Array<Express.Multer.File>,
     thumbnail?: Express.Multer.File,
@@ -399,9 +400,9 @@ export class TrackService {
         tags,
         subTitle,
       } = createTrackDto;
-      const user = await this.usersService.getUserById(userId);
+      const user = await this.usersService.getUserById(String(userId));
       const artist = await this.prismaService.artist.findUnique({
-        where: { id: artistId },
+        where: { id: String(artistId) },
       });
 
       if (!artist) {
@@ -409,7 +410,7 @@ export class TrackService {
       }
 
       const vidTitle = await this.prismaService.video.findFirst({
-        where: { title, artistId },
+        where: { title, artistId: String(artistId) },
       });
 
       if (vidTitle) {
@@ -541,12 +542,12 @@ export class TrackService {
     }
   }
 
-  public async findVideo(id: number): Promise<any> {
+  public async findVideo(id: string): Promise<any> {
     try {
       //const user = await this.usersService.getUserById(userId);
 
       const video = await this.prismaService.video.findUnique({
-        where: { id },
+        where: { id: String(id) },
         include: {
           thumbnail: true,
           artist: true,
@@ -567,7 +568,7 @@ export class TrackService {
       await this.prismaService.videoViews.create({
         data: {
           user: { connect: { id: video.user.id } },
-          video: { connect: { id: id } },
+          video: { connect: { id: String(id) } },
         },
       });
       return {
@@ -586,15 +587,15 @@ export class TrackService {
     }
   }
 
-  async commentVideo(userId: number, id: number, comment: string) {
+  async commentVideo(userId: string, id: number, comment: string) {
     try {
-      const user = await this.usersService.getUserById(userId);
+      const user = await this.usersService.getUserById(String(userId));
       if (!comment) {
         throw new HttpException('Comment is required.', HttpStatus.BAD_REQUEST);
       }
 
       const video = await this.prismaService.video.findUnique({
-        where: { id },
+        where: { id: String(id) },
       });
 
       if (!video) {
@@ -628,12 +629,12 @@ export class TrackService {
     }
   }
 
-  async likeOrUnlikeVideo(id: number, userId: number) {
+  async likeOrUnlikeVideo(id: number, userId: string) {
     try {
-      const user = await this.usersService.getUserById(userId);
+      const user = await this.usersService.getUserById(String(userId));
 
       const video = await this.prismaService.video.findUnique({
-        where: { id },
+        where: { id: String(id) },
         include: {
           likes: true,
         },
@@ -652,7 +653,7 @@ export class TrackService {
 
       if (userLikedvideo) {
         await this.prismaService.like.deleteMany({
-          where: { videoId: video.id, userId },
+          where: { videoId: video.id, userId: String(userId) },
         });
         return {
           status: 'Success',
@@ -662,7 +663,7 @@ export class TrackService {
         await this.prismaService.like.create({
           data: {
             videoId: video.id,
-            userId,
+            userId: String(userId),
           },
         });
         return {
@@ -681,12 +682,12 @@ export class TrackService {
     }
   }
 
-  async removeVid(userId: number, id: number) {
+  async removeVid(userId: string, id: string) {
     try {
-      const user = await this.usersService.getUserById(userId);
+      const user = await this.usersService.getUserById(String(userId));
 
       const video = await this.prismaService.video.findUnique({
-        where: { id },
+        where: { id: String(id) },
       });
 
       if (!video) {
@@ -695,7 +696,7 @@ export class TrackService {
 
       await this.prismaService.video.delete({
         where: {
-          id,
+          id: String(id),
         },
       });
 
@@ -715,20 +716,20 @@ export class TrackService {
   }
 
   public async updateVideo(
-    userId: number,
-    id: number,
+    userId: string,
+    id: string,
     updateTrackDto: UpdateTrackDto,
     videos?: Array<Express.Multer.File>,
     thumbnail?: Express.Multer.File,
   ) {
     try {
-      const user = await this.usersService.getUserById(userId);
+      const user = await this.usersService.getUserById(String(userId));
       if (!user) {
         throw new HttpException('User not found', HttpStatus.NOT_FOUND);
       }
 
       const existingVideo = await this.prismaService.video.findUnique({
-        where: { id },
+        where: { id: String(id) },
         include: { thumbnail: true },
       });
 
@@ -800,8 +801,9 @@ export class TrackService {
       };
 
       const updatedVideo = await this.prismaService.video.update({
-        where: { id },
+        where: { id: String(id) },
         data: updateData,
+
         include: { thumbnail: true },
       });
 

@@ -15,7 +15,7 @@ export class PostService {
   ) {}
 
   async create(
-    userId: number,
+    userId: string,
     createPostDto: CreatePostDto,
     files: Array<Express.Multer.File>,
   ): Promise<any> {
@@ -123,7 +123,7 @@ export class PostService {
     }
   }
 
-  public async findOne(id: number): Promise<any> {
+  public async findOne(id: string): Promise<any> {
     try {
       //const user = await this.usersService.getUserById(userId);
 
@@ -168,8 +168,8 @@ export class PostService {
   }
 
   public async update(
-    userId: number,
-    id: number,
+    userId: string,
+    id: string,
     updatePostDto: UpdatePostDto,
     files: Array<Express.Multer.File>,
   ) {
@@ -285,22 +285,29 @@ export class PostService {
     }
   }
 
-  async remove(userId: number, id: number) {
+  async remove(userId: string, id: string) {
     try {
-      const user = await this.usersService.getUserById(userId);
+      const postId = this.validatePostId(id);
 
+      const user = await this.usersService.getUserById(userId);
       const post = await this.prismaService.post.findUnique({
-        where: { id, authorId: userId },
+        where: { id: postId, authorId: userId },
         include: { image: true },
       });
 
       if (!post) {
-        throw new HttpException('post not found', HttpStatus.NOT_FOUND);
+        throw new HttpException('Post not found', HttpStatus.NOT_FOUND);
       }
 
+      // Delete associated PostViews records first
+      await this.prismaService.postViews.deleteMany({
+        where: { postId: postId },
+      });
+
+      // Then delete the Post entity
       await this.prismaService.post.delete({
         where: {
-          id,
+          id: postId,
           authorId: user.id,
         },
       });
@@ -320,7 +327,16 @@ export class PostService {
     }
   }
 
-  async stats(userId: number, numofDays: number = 28): Promise<any> {
+  // Helper function to validate the postId
+  private validatePostId(postId: string): string {
+    // Check if postId is a valid hexadecimal string
+    if (!/^[0-9a-fA-F]{24}$/.test(postId)) {
+      throw new HttpException('Invalid postId', HttpStatus.BAD_REQUEST);
+    }
+    return postId;
+  }
+
+  async stats(userId: string, numofDays: number = 28): Promise<any> {
     try {
       const user = await this.usersService.getUserById(userId);
 
@@ -388,7 +404,7 @@ export class PostService {
     }
   }
 
-  async commentPost(userId: number, id: number, updatePostDto: UpdatePostDto) {
+  async commentPost(userId: string, id: string, updatePostDto: UpdatePostDto) {
     try {
       if (!id) {
         throw new HttpException(`Post id required`, HttpStatus.BAD_REQUEST);
@@ -444,7 +460,7 @@ export class PostService {
     }
   }
 
-  async likeOrUnlikePost(id: number, userId: number) {
+  async likeOrUnlikePost(id: string, userId: string) {
     try {
       const user = await this.usersService.getUserById(userId);
 

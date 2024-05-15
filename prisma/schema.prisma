@@ -6,12 +6,12 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mongodb"
   url      = env("DATABASE_URL")
 }
 
 model User {
-  id            Int       @id @default(autoincrement())
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
   userName      String?
   role          String?   @default("user")
   email         String?   @unique
@@ -26,7 +26,7 @@ model User {
   updatedAt     DateTime  @updatedAt
 
   // Relationships
-  imageId Int? @unique
+  imageId String? @db.ObjectId
 
   image           Image?            @relation(fields: [imageId], references: [id])
   posts           Post[]
@@ -44,7 +44,7 @@ model User {
 }
 
 model Image {
-  id          Int     @id @default(autoincrement())
+  id          String  @id @default(auto()) @map("_id") @db.ObjectId
   publicId    String  @unique
   url         String
   format      String?
@@ -52,28 +52,30 @@ model Image {
   placeholder String?
 
   // Relationships
-  users  User[]
-  events Event[]
-  albums Album[]
-  artist Artist[]
-  posts  Post[]   @relation("ImageToPost")
-  Video  Video[]
-  Track  Track[]
+  users    User[]
+  events   Event[]  @relation(fields: [eventIds], references: [id])
+  eventIds String[] @db.ObjectId
+  albums   Album[]
+  artist   Artist[]
+  posts    Post[]   @relation("ImageToPost", fields: [postIds], references: [id])
+  postIds  String[] @db.ObjectId
+  Video    Video[]
+  Track    Track[]
 
   Audio     Audio[]
   organiser Organiser[]
 }
 
 model Artist {
-  id        Int      @id @default(autoincrement())
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
   name      String
   bio       String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   // Relationships
-  userId  Int?
-  imageId Int? @unique
+  userId  String  @db.ObjectId
+  imageId String? @db.ObjectId
 
   albums Album[]
   audeos Audio[]
@@ -85,7 +87,7 @@ model Artist {
 }
 
 model Album {
-  id          Int      @id @default(autoincrement())
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
   title       String
   description String?
   releaseDate DateTime
@@ -93,16 +95,16 @@ model Album {
   updatedAt   DateTime @updatedAt
 
   // Relationships
-  imageId Int? @unique
+  imageId String? @unique @db.ObjectId
 
   coverImage Image?  @relation(fields: [imageId], references: [id])
   artist     Artist  @relation(fields: [artistId], references: [id], onDelete: Cascade)
-  artistId   Int
+  artistId   String  @db.ObjectId
   tracks     Track[]
 }
 
 model Track {
-  id          Int      @id @default(autoincrement())
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
   title       String
   subTitle    String?
   duration    String?
@@ -113,10 +115,10 @@ model Track {
   updatedAt   DateTime @updatedAt
 
   // Relationships
-  albumId  Int?
-  artistId Int?
-  userId   Int
-  imageId  Int?
+  albumId  String?           @db.ObjectId
+  artistId String?           @db.ObjectId
+  userId   String            @db.ObjectId
+  imageId  String?           @db.ObjectId
   likes    Like[]
   views    AudioTrackViews[]
 
@@ -127,7 +129,7 @@ model Track {
 }
 
 model Event {
-  id          Int      @id @default(autoincrement())
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
   title       String
   subTitle    String?
   description String?
@@ -136,33 +138,36 @@ model Event {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  userId     Int?
-  image      Image[]
+  userId     String      @db.ObjectId
+  image      Image[]     @relation(fields: [imageIds], references: [id])
+  imageIds   String[]    @db.ObjectId
   likes      Like[]
   comments   Comment[]
-  organisers Organiser[]
+  organisers Organiser[] @relation(fields: [imageIds], references: [id])
 
-  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         User?    @relation(fields: [organiserIds], references: [id], onDelete: Cascade)
+  organiserIds String[] @db.ObjectId
 }
 
 model Organiser {
-  id        Int      @id @default(autoincrement())
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
   name      String
   bio       String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  userId  Int?
-  imageId Int? @unique
+  userId  String  @db.ObjectId
+  imageId String? @unique @db.ObjectId
 
-  events Event[]
+  events   Event[]  @relation(fields: [eventIds], references: [id])
+  eventIds String[] @db.ObjectId
 
   user  User?  @relation(fields: [userId], references: [id], onDelete: Cascade)
   image Image? @relation(fields: [imageId], references: [id])
 }
 
 model Post {
-  id          Int      @id @default(autoincrement())
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
   title       String
   subtitle    String?
   categories  String[]
@@ -174,28 +179,29 @@ model Post {
 
   // Relationships
 
-  authorId Int
+  authorId String @db.ObjectId
 
   author  User        @relation(fields: [authorId], references: [id], onDelete: Cascade)
   comment Comment[]
   likes   Like[]
-  image   Image[]     @relation("ImageToPost")
+  image   Image[]     @relation("ImageToPost", fields: [postIds], references: [id])
+  postIds String[]    @db.ObjectId
   views   PostViews[]
 }
 
 model Comment {
-  id        Int      @id @default(autoincrement())
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
   content   String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   // Relationships
 
-  postId  Int?
-  eventId Int?
-  videoId Int?
-  audioId Int?
-  userId  Int?
+  postId  String? @db.ObjectId
+  eventId String? @db.ObjectId
+  videoId String? @db.ObjectId
+  audioId String? @db.ObjectId
+  userId  String? @db.ObjectId
 
   post  Post?  @relation(fields: [postId], references: [id], onDelete: Cascade)
   event Event? @relation(fields: [eventId], references: [id], onDelete: Cascade)
@@ -205,17 +211,17 @@ model Comment {
 }
 
 model Like {
-  id        Int      @id @default(autoincrement())
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   // Relationships
-  postId  Int?
-  userId  Int
-  videoId Int?
-  audioId Int?
-  eventId Int?
-  trackId Int?
+  postId  String? @db.ObjectId
+  userId  String  @db.ObjectId
+  videoId String? @db.ObjectId
+  audioId String? @db.ObjectId
+  eventId String? @db.ObjectId
+  trackId String? @db.ObjectId
 
   user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   post  Post?  @relation(fields: [postId], references: [id], onDelete: Cascade)
@@ -226,7 +232,7 @@ model Like {
 }
 
 model Video {
-  id          Int      @id @default(autoincrement())
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
   title       String
   subTitle    String?
   description String?
@@ -239,9 +245,9 @@ model Video {
   updatedAt   DateTime @updatedAt
 
   // Relationships
-  artistId Int?
-  imageId  Int?
-  userId   Int
+  artistId String? @db.ObjectId
+  imageId  String? @db.ObjectId
+  userId   String  @db.ObjectId
 
   thumbnail Image?  @relation(fields: [imageId], references: [id])
   artist    Artist? @relation(fields: [artistId], references: [id], onDelete: Cascade)
@@ -253,7 +259,7 @@ model Video {
 }
 
 model Audio {
-  id          Int      @id @default(autoincrement())
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
   title       String
   description String?
   audioUrl    String?
@@ -262,8 +268,8 @@ model Audio {
   updatedAt   DateTime @updatedAt
 
   // Relationships
-  artistId Int?
-  userId   Int
+  artistId String? @db.ObjectId
+  userId   String  @db.ObjectId
 
   artist Artist? @relation(fields: [artistId], references: [id], onDelete: Cascade)
   user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -271,14 +277,14 @@ model Audio {
   likes    Like[]
   comments Comment[]
   Image    Image?    @relation(fields: [imageId], references: [id])
-  imageId  Int?
+  imageId  String?   @db.ObjectId
 }
 
 // Views tracking tables
 model VideoViews {
-  id        Int      @id @default(autoincrement())
-  videoId   Int
-  userId    Int
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  videoId   String   @db.ObjectId
+  userId    String   @db.ObjectId
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -288,9 +294,9 @@ model VideoViews {
 }
 
 model AudioTrackViews {
-  id        Int      @id @default(autoincrement())
-  audioId   Int
-  userId    Int
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  audioId   String   @db.ObjectId
+  userId    String   @db.ObjectId
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -300,9 +306,9 @@ model AudioTrackViews {
 }
 
 model PostViews {
-  id        Int      @id @default(autoincrement())
-  postId    Int
-  userId    Int
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  postId    String   @db.ObjectId
+  userId    String   @db.ObjectId
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

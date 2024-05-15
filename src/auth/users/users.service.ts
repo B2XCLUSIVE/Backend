@@ -185,7 +185,7 @@ export class UsersService {
     });
   }
 
-  async getUserById(userId: number) {
+  async getUserById(userId: string) {
     const user = await this.prismaService.user.findUnique({
       where: { id: userId },
       include: {
@@ -223,12 +223,13 @@ export class UsersService {
   }
 
   async updateUser(
-    userId: number,
+    userId: string,
     updateUserDto: UpdateUserDto,
     file?: Express.Multer.File,
   ): Promise<any> {
     try {
-      const user = await this.getUserById(userId);
+      const id: string = String(userId);
+      const user = await this.getUserById(id);
 
       const existingUser = await this.prismaService.user.findUnique({
         where: { id: user.id },
@@ -282,7 +283,7 @@ export class UsersService {
       }
 
       const updatedUser = await this.prismaService.user.update({
-        where: { id: userId },
+        where: { id: String(userId) },
         data: {
           userName: updateUserDto.userName,
           bio: updateUserDto.bio,
@@ -321,9 +322,9 @@ export class UsersService {
     }
   }
 
-  public async findAll(userId: number): Promise<any> {
+  public async findAll(userId: string): Promise<any> {
     try {
-      const user = await this.getUserById(userId);
+      const user = await this.getUserById(String(userId));
 
       const users = await this.prismaService.user.findMany({
         // where: { authorId: user.id },

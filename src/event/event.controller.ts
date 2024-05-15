@@ -87,20 +87,20 @@ export class EventController {
   /************************ GET EVENT BY ID *****************************/
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.eventService.findOne(+id);
+    return this.eventService.findOne(id);
   }
 
   /************************ UPDATE EVENT *****************************/
   @UseGuards(JwtGuard)
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateEventDto: UpdateEventDto) {
-    return this.eventService.update(+id, updateEventDto);
+    return this.eventService.update(id, updateEventDto);
   }
 
   /************************ DELETE EVENT *****************************/
   @UseGuards(JwtGuard)
   @Delete('delete/:id')
   remove(@CurrentUser() user: User, @Param('id') id: string) {
-    return this.eventService.remove(user.id, +id);
+    return this.eventService.remove(user.id, id);
   }
 }

@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { CreateEventDto, OrganisersDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
-import { Prisma } from '@prisma/client';
+import { Organiser, Prisma } from '@prisma/client';
 import { CloudinaryService, PrismaService } from 'src/common';
 import { UsersService } from 'src/auth/users/users.service';
 
@@ -13,10 +13,110 @@ export class EventService {
     private readonly cloudinaryService: CloudinaryService,
     private readonly logger: Logger,
   ) {}
+  // public async create(
+  //   userId: string,
+  //   createEventDto: CreateEventDto,
+  //   files?: Array<Express.Multer.File>,
+  // ): Promise<any> {
+  //   try {
+  //     const user = await this.usersService.getUserById(String(userId));
+  //     if (!user) {
+  //       throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+  //     }
+
+  //     const organiserIds = createEventDto.organisersId.map((id) => id.trim());
+  //     // Get the organizers if their IDs are provided
+  //     let organisers = [];
+  //     if (createEventDto.organisersId) {
+  //       organisers = await this.prismaService.organiser.findMany({
+  //         where: {
+  //           id: { in: organiserIds },
+  //         },
+  //       });
+
+  //       // Check for missing organisers
+  //       const notFoundOrganisers = organiserIds.filter(
+  //         (id) => !organisers.some((o) => o.id === id),
+  //       );
+  //       console.log(notFoundOrganisers);
+  //       if (notFoundOrganisers.length > 0) {
+  //         const errorMessage = `Organisers not found: ${notFoundOrganisers.join(
+  //           ', ',
+  //         )}`;
+  //         throw new HttpException(errorMessage, HttpStatus.NOT_FOUND);
+  //       }
+  //     }
+
+  //     // Handle Cloudinary image uploads
+  //     let imagesLinks = [];
+  //     if (files && files.length > 0) {
+  //       imagesLinks = await this.cloudinaryService.uploadMedias(files, 'image');
+  //     }
+
+  //     let createdImages = [];
+  //     if (imagesLinks.length > 0) {
+  //       createdImages = await Promise.all(
+  //         imagesLinks.map(async (file) => {
+  //           return await this.prismaService.image.create({
+  //             data: {
+  //               publicId: file.public_id,
+  //               url: file.url,
+  //             },
+  //           });
+  //         }),
+  //       );
+  //     }
+
+  //     // Create the event
+  //     const event = await this.prismaService.event.create({
+  //       data: {
+  //         title: createEventDto.title,
+  //         subTitle: createEventDto.subTitle,
+  //         description: createEventDto.description,
+  //         location: createEventDto.location,
+  //         date: createEventDto.date,
+  //         user: { connect: { id: String(user.id) } },
+  //         image: {
+  //           connect: createdImages.map((image) => ({
+  //             id: String(image.id),
+  //           })),
+  //         },
+  //         organisers: {
+  //           connect: organisers.map((organiser) => ({
+  //             id: String(organiser.id),
+  //           })),
+  //         },
+  //       },
+  //       include: { image: true, organisers: true },
+  //     });
+
+  //     return {
+  //       status: true,
+  //       message: 'Successfully created event',
+  //       data: event,
+  //     };
+  //   } catch (error) {
+  //     this.logger.error(error);
+  //     if (error instanceof HttpException) {
+  //       throw error;
+  //     } else if (error instanceof Prisma.PrismaClientValidationError) {
+  //       throw new HttpException(
+  //         'Validation error occurred while creating event',
+  //         HttpStatus.BAD_REQUEST,
+  //       );
+  //     } else {
+  //       throw new HttpException(
+  //         'An error occurred while creating event',
+  //         HttpStatus.INTERNAL_SERVER_ERROR,
+  //       );
+  //     }
+  //   }
+  // }
+
   public async create(
-    userId: number,
+    userId: string,
     createEventDto: CreateEventDto,
-    files?: Array<Express.Multer.File>,
+    files?: Express.Multer.File[],
   ): Promise<any> {
     try {
       const user = await this.usersService.getUserById(userId);
@@ -24,11 +124,9 @@ export class EventService {
         throw new HttpException('User not found', HttpStatus.NOT_FOUND);
       }
 
-      const organiserIds = createEventDto.organisersId.map((id) =>
-        parseInt(id.trim(), 10),
-      );
+      const organiserIds = createEventDto.organisersId.map((id) => id.trim());
       // Get the organizers if their IDs are provided
-      let organisers = [];
+      let organisers: Organiser[] = [];
       if (createEventDto.organisersId) {
         organisers = await this.prismaService.organiser.findMany({
           where: {
@@ -50,13 +148,12 @@ export class EventService {
       }
 
       // Handle Cloudinary image uploads
-      let imagesLinks = [];
-      if (files && files.length > 0) {
-        imagesLinks = await this.cloudinaryService.uploadMedias(files, 'image');
-      }
-
       let createdImages = [];
-      if (imagesLinks.length > 0) {
+      if (files && files.length > 0) {
+        const imagesLinks = await this.cloudinaryService.uploadMedias(
+          files,
+          'image',
+        );
         createdImages = await Promise.all(
           imagesLinks.map(async (file) => {
             return await this.prismaService.image.create({
@@ -69,7 +166,6 @@ export class EventService {
         );
       }
 
-      // Create the event
       const event = await this.prismaService.event.create({
         data: {
           title: createEventDto.title,
@@ -77,7 +173,7 @@ export class EventService {
           description: createEventDto.description,
           location: createEventDto.location,
           date: createEventDto.date,
-          user: { connect: { id: user.id } },
+          userId: userId,
           image: {
             connect: createdImages.map((image) => ({
               id: image.id,
@@ -116,7 +212,7 @@ export class EventService {
   }
 
   async organiser(
-    userId: number,
+    userId: string,
     organisersDto: OrganisersDto,
     file?: Express.Multer.File,
   ): Promise<any> {
@@ -233,7 +329,7 @@ export class EventService {
     }
   }
 
-  public async findOne(id: number): Promise<any> {
+  public async findOne(id: string): Promise<any> {
     try {
       const event = await this.prismaService.event.findUnique({
         where: { id },
@@ -267,11 +363,11 @@ export class EventService {
     }
   }
 
-  update(id: number, updateEventDto: UpdateEventDto) {
+  update(id: string, updateEventDto: UpdateEventDto) {
     return `This action updates a #${id} event`;
   }
 
-  async remove(userId: number, id: number) {
+  async remove(userId: string, id: string) {
     try {
       const user = await this.usersService.getUserById(userId);
 
