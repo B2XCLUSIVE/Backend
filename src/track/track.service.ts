@@ -145,10 +145,10 @@ export class TrackService {
     }
   }
 
-  public async findAudio(id: number): Promise<any> {
+  public async findAudio(id: string): Promise<any> {
     try {
       // const user = await this.usersService.getUserById(userId);
-
+      console.log(id);
       const audio = await this.prismaService.track.findUnique({
         where: { id: String(id) },
         include: {

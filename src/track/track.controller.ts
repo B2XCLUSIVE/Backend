@@ -167,6 +167,7 @@ export class TrackController {
   // @UseGuards(JwtGuard)
   @Get('video/:id')
   findVideo(@Param('id') id: string) {
+    console.log(id);
     return this.trackService.findVideo(id);
   }
 
@@ -181,7 +182,8 @@ export class TrackController {
   // @UseGuards(JwtGuard)
   @Get('audio/:id')
   findOne(@Param('id') id: string) {
-    return this.trackService.findAudio(+id);
+    console.log(id);
+    return this.trackService.findAudio(id);
   }
 
   /************************ UPDATE AUDIO *****************************/
