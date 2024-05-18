@@ -91,10 +91,26 @@ export class EventController {
   }
 
   /************************ UPDATE EVENT *****************************/
+
   @UseGuards(JwtGuard)
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateEventDto: UpdateEventDto) {
-    return this.eventService.update(id, updateEventDto);
+  @Patch('update/:id')
+  @UseInterceptors(FilesInterceptor('files'))
+  update(
+    @CurrentUser() user: User,
+    @Body() updateEventDto: UpdateEventDto,
+    @Param('id') id: string,
+    @UploadedFiles(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 5000000 }),
+          //new FileTypeValidator({ fileType: 'image/jpeg' }),
+        ],
+        fileIsRequired: false,
+      }),
+    )
+    files: Array<Express.Multer.File>,
+  ) {
+    return this.eventService.update(user.id, id, updateEventDto, files);
   }
 
   /************************ DELETE EVENT *****************************/

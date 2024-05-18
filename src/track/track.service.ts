@@ -148,7 +148,7 @@ export class TrackService {
   public async findAudio(id: string): Promise<any> {
     try {
       // const user = await this.usersService.getUserById(userId);
-      console.log(id);
+
       const audio = await this.prismaService.track.findUnique({
         where: { id: String(id) },
         include: {
@@ -188,7 +188,7 @@ export class TrackService {
     }
   }
 
-  async commentAudio(userId: string, id: number, comment: string) {
+  async commentAudio(userId: string, id: string, comment: string) {
     try {
       const user = await this.usersService.getUserById(String(userId));
       if (!comment) {
@@ -232,7 +232,7 @@ export class TrackService {
 
   public async updateAudio(
     userId: string,
-    trackId: number,
+    trackId: string,
     updateTrackDto: UpdateTrackDto,
     audios?: Array<Express.Multer.File>,
     thumbnail?: Express.Multer.File,
@@ -349,7 +349,7 @@ export class TrackService {
     }
   }
 
-  async removeAudio(userId: string, id: number) {
+  async removeAudio(userId: string, id: string) {
     try {
       const user = await this.usersService.getUserById(String(userId));
 
@@ -587,7 +587,7 @@ export class TrackService {
     }
   }
 
-  async commentVideo(userId: string, id: number, comment: string) {
+  async commentVideo(userId: string, id: string, comment: string) {
     try {
       const user = await this.usersService.getUserById(String(userId));
       if (!comment) {
@@ -629,7 +629,7 @@ export class TrackService {
     }
   }
 
-  async likeOrUnlikeVideo(id: number, userId: string) {
+  async likeOrUnlikeVideo(id: string, userId: string) {
     try {
       const user = await this.usersService.getUserById(String(userId));
 

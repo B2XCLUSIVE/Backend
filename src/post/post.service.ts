@@ -327,7 +327,6 @@ export class PostService {
     }
   }
 
-  // Helper function to validate the postId
   private validatePostId(postId: string): string {
     // Check if postId is a valid hexadecimal string
     if (!/^[0-9a-fA-F]{24}$/.test(postId)) {

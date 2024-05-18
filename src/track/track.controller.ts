@@ -182,7 +182,6 @@ export class TrackController {
   // @UseGuards(JwtGuard)
   @Get('audio/:id')
   findOne(@Param('id') id: string) {
-    console.log(id);
     return this.trackService.findAudio(id);
   }
 
@@ -240,7 +239,7 @@ export class TrackController {
 
     return this.trackService.updateAudio(
       user.id,
-      +id,
+      id,
       updateTrackDto,
       audios ? audios : null,
       thumbnail ? thumbnail[0] : null,
@@ -251,7 +250,7 @@ export class TrackController {
   @UseGuards(JwtGuard)
   @Delete('audio/delete/:id')
   removeAudio(@CurrentUser() user: User, @Param('id') id: string) {
-    return this.trackService.removeAudio(user.id, +id);
+    return this.trackService.removeAudio(user.id, id);
   }
 
   /************************ COMMENT VIDEO *****************************/
@@ -259,7 +258,7 @@ export class TrackController {
   @Put('video/:videoId/comment')
   commentPost(
     @CurrentUser() user: User,
-    @Param('videoId') videoId: number,
+    @Param('videoId') videoId: string,
     @Body('comment') comment: string,
   ) {
     return this.trackService.commentVideo(user.id, videoId, comment);
@@ -270,7 +269,7 @@ export class TrackController {
   @Put('video/:videoId/like')
   likeOrUnlikePost(
     @CurrentUser() user: User,
-    @Param('videoId') videoId: number,
+    @Param('videoId') videoId: string,
   ) {
     return this.trackService.likeOrUnlikeVideo(videoId, user.id);
   }
@@ -280,7 +279,7 @@ export class TrackController {
   @Get('audio/comment')
   commentAudio(
     @CurrentUser() user: User,
-    @Param('audioId') audioId: number,
+    @Param('audioId') audioId: string,
     comment: string,
   ) {
     return this.trackService.commentAudio(user.id, audioId, comment);
