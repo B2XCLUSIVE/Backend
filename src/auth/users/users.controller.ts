@@ -38,6 +38,11 @@ export class UsersController {
     return this.usersService.findAll(user.id);
   }
 
+  @Get('likes')
+  findAllLikes(@CurrentUser() user: User) {
+    return this.usersService.findAllLikes();
+  }
+
   @Post('reset-password')
   resetPassword(@Body() createUserDto: CreateUserDto) {
     return this.usersService.resetPassword(createUserDto);

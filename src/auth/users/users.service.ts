@@ -349,7 +349,35 @@ export class UsersService {
     } catch (error) {
       if (error instanceof Prisma.PrismaClientValidationError) {
         throw new HttpException(
-          'An error occurred while fetching posts',
+          'An error occurred while fetching users',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      throw error;
+    }
+  }
+
+  public async findAllLikes(): Promise<any> {
+    try {
+      const likes = await this.prismaService.like.findMany({
+        include: {
+          post: { include: { author: true } },
+          video: { include: { user: true } },
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+      });
+
+      return {
+        status: 'Success',
+        message: 'Likes retrieved successfully',
+        data: likes,
+      };
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientValidationError) {
+        throw new HttpException(
+          'An error occurred while fetching likes',
           HttpStatus.BAD_REQUEST,
         );
       }
