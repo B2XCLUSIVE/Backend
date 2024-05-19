@@ -98,8 +98,8 @@ export class PostService {
         include: {
           image: true,
           views: true,
-          comment: true,
-          likes: true,
+          comment: { include: { user: true } },
+          likes: { include: { user: true } },
           author: { include: { image: true } },
         },
         orderBy: {
@@ -132,8 +132,8 @@ export class PostService {
         include: {
           image: true,
           views: true,
-          comment: true,
-          likes: true,
+          comment: { include: { user: true } },
+          likes: { include: { user: true } },
           author: { include: { image: true } },
         },
       });
@@ -433,6 +433,7 @@ export class PostService {
           postId: post.id,
           userId: user.id,
         },
+        include: { post: true },
       });
 
       if (!comments) {
@@ -466,7 +467,7 @@ export class PostService {
       const post = await this.prismaService.post.findUnique({
         where: { id },
         include: {
-          likes: true,
+          likes: { include: { user: true } },
           author: { include: { image: true } },
         },
       });
@@ -478,26 +479,30 @@ export class PostService {
         );
       }
 
+      let like;
       const userLikedPost = post.likes.some((like) => like.userId === user.id);
 
       if (userLikedPost) {
-        await this.prismaService.like.deleteMany({
+        like = await this.prismaService.like.deleteMany({
           where: { postId: post.id, userId },
         });
         return {
           status: 'Success',
           message: 'Post Unliked',
+          data: like,
         };
       } else {
-        await this.prismaService.like.create({
+        like = await this.prismaService.like.create({
           data: {
             postId: post.id,
             userId,
           },
+          include: { post: true },
         });
         return {
           status: 'Success',
           message: 'Post Liked',
+          data: like,
         };
       }
     } catch (error) {
