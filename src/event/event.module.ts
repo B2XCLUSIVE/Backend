@@ -18,7 +18,7 @@ import { UsersService } from 'src/auth/users/users.service';
     CloudinaryService,
     OTPService,
     UsersService,
-    MailService,
+    //MailService,
     JwtAuthService,
     Logger,
   ],

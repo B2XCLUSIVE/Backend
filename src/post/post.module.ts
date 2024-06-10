@@ -17,7 +17,7 @@ import { UsersService } from 'src/auth/users/users.service';
     PrismaService,
     CloudinaryService,
     OTPService,
-    MailService,
+    //MailService,
     UsersService,
     JwtAuthService,
     Logger,

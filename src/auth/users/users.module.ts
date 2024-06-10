@@ -16,7 +16,7 @@ import { AuthModule } from '../auth.module';
     UsersService,
     PrismaService,
     OTPService,
-    MailService,
+    //MailService,
     JwtAuthService,
     CloudinaryService,
     Logger,

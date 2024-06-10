@@ -18,7 +18,7 @@ import {
     PrismaService,
     CloudinaryService,
     OTPService,
-    MailService,
+    // MailService,
     JwtAuthService,
     Logger,
   ],

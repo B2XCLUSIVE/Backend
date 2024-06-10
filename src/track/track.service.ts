@@ -84,10 +84,10 @@ export class TrackService {
               duration,
               description,
               audioUrl,
-              image: { connect: { id: image.id } },
+              image: { connect: { id: image?.id } },
               publicId: publicIds[index],
-              artist: { connect: { id: artist.id } },
-              user: { connect: { id: user.id } },
+              artist: { connect: { id: artist?.id } },
+              user: { connect: { id: user?.id } },
             },
             include: { artist: true, image: true },
           });
@@ -400,6 +400,7 @@ export class TrackService {
         tags,
         subTitle,
       } = createTrackDto;
+
       const user = await this.usersService.getUserById(String(userId));
       const artist = await this.prismaService.artist.findUnique({
         where: { id: String(artistId) },
@@ -424,7 +425,7 @@ export class TrackService {
       let publicIds: string[] = [];
 
       if (videos && videos.length > 0) {
-        console.log('Yes video');
+        console.log('About to Upload video');
         const uploadedAudios = await Promise.all(
           videos.map(async (video) => {
             const result = await this.cloudinaryService.uploadMedia(
@@ -437,6 +438,8 @@ export class TrackService {
         );
         videoUrls = uploadedAudios;
       }
+
+      console.log('Uploaded video');
 
       let image = null;
       if (thumbnail) {
@@ -452,7 +455,7 @@ export class TrackService {
           },
         });
       }
-
+      console.log('Uploaded thumbnail');
       const vid = await Promise.all(
         videoUrls.map(async (videoUrl, index) => {
           return await this.prismaService.video.create({
@@ -464,10 +467,10 @@ export class TrackService {
               categories,
               tags,
               videoUrl,
-              thumbnail: { connect: { id: image.id } },
+              thumbnail: image ? { connect: { id: image.id } } : undefined,
               publicId: publicIds[index],
-              artist: { connect: { id: artist.id } },
-              user: { connect: { id: user.id } },
+              artist: { connect: { id: artist?.id } },
+              user: { connect: { id: user?.id } },
             },
             include: { artist: true, thumbnail: true },
           });

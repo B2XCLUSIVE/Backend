@@ -7,7 +7,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
-    ConfigModule, // Add the ConfigModule to access the ConfigService
+    ConfigModule,
     MailerModule.forRootAsync({
       useFactory: async (configService: ConfigService) => ({
         transport: {

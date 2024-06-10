@@ -5,7 +5,7 @@ import { UsersModule } from './users/users.module';
 import {
   CloudinaryService,
   JwtAuthService,
-  MailModule,
+  //MailModule,
   OTPService,
   PrismaService,
 } from 'src/common';
@@ -22,6 +22,6 @@ import { UsersService } from './users/users.service';
     CloudinaryService,
     Logger,
   ],
-  imports: [UsersModule, MailModule],
+  imports: [UsersModule],
 })
 export class AuthModule {}

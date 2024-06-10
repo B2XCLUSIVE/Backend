@@ -18,7 +18,7 @@ export class UsersService {
   constructor(
     private readonly prismaService: PrismaService,
     private readonly otpService: OTPService,
-    private readonly mailService: MailService,
+    //private readonly mailService: MailService,
     private readonly cloudinaryService: CloudinaryService,
     private readonly logger: Logger,
   ) {}
@@ -41,7 +41,7 @@ export class UsersService {
     });
 
     // Send OTP via messaging service
-    await this.mailService.forgotPassword(user, otp);
+    //await this.mailService.forgotPassword(user, otp);
     return {
       message: 'Password reset initiated. Check your email for the OTP',
       ...newUser,
@@ -74,7 +74,7 @@ export class UsersService {
     });
 
     // Send OTP via messaging service
-    await this.mailService.forgotPassword(user, otp);
+    // await this.mailService.forgotPassword(user, otp);
 
     return {
       message: 'OTP sent successfully',
