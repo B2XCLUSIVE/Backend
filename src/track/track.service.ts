@@ -21,6 +21,9 @@ export class TrackService {
     thumbnail?: Express.Multer.File,
   ): Promise<any> {
     try {
+      if (!createTrackDto.description) {
+        throw new HttpException('Missing field', HttpStatus.BAD_REQUEST);
+      }
       const { title, description, duration, artistId, subTitle } =
         createTrackDto;
       const user = await this.usersService.getUserById(String(userId));
@@ -391,6 +394,10 @@ export class TrackService {
     thumbnail?: Express.Multer.File,
   ): Promise<any> {
     try {
+      if (!createTrackDto.description) {
+        throw new HttpException('Missing field', HttpStatus.BAD_REQUEST);
+      }
+
       const {
         title,
         description,
@@ -496,7 +503,6 @@ export class TrackService {
     }
   }
 
-  // Helper function to create thumbnail in the database
   private async createThumbnail(thumbnailData: {
     publicId: string;
     url: string;
@@ -831,5 +837,13 @@ export class TrackService {
         );
       }
     }
+  }
+
+  async getDownloadUrl(
+    publicId: string,
+    type: 'video' | 'audio',
+  ): Promise<any> {
+    // Generate the download URL with Cloudinary's "attachment" flag to prompt a download
+    return this.cloudinaryService.getDownloadUrl(publicId, type);
   }
 }

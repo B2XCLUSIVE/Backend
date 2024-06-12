@@ -344,4 +344,13 @@ export class TrackController {
       thumbnail ? thumbnail[0] : null,
     );
   }
+
+  @UseGuards(JwtGuard)
+  @Get('download/:type/:publicId')
+  async downloadMedia(
+    @Param('publicId') publicId: string,
+    @Param('type') type: 'video' | 'audio',
+  ): Promise<any> {
+    return await this.trackService.getDownloadUrl(publicId, type);
+  }
 }

@@ -95,4 +95,14 @@ export class CloudinaryService {
       toStream(file.buffer).pipe(upload);
     });
   }
+
+  async getDownloadUrl(
+    publicId: string,
+    resourceType: 'video' | 'audio',
+  ): Promise<string> {
+    return v2.url(publicId, {
+      resource_type: resourceType,
+      flags: 'attachment',
+    });
+  }
 }

@@ -23,8 +23,8 @@ export class CreateTrackDto {
   artistId: string;
 
   @IsString()
-  @IsNotEmpty()
-  description: string;
+  @IsOptional()
+  description?: string;
 
   @IsString()
   @IsOptional()
